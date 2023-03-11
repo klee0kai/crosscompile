@@ -1,20 +1,22 @@
 package com.github.klee0kai.androidnative
 
-import org.gradle.api.Plugin
+import com.android.build.gradle.BasePlugin
+import com.github.klee0kai.androidnative.env.guessAndroidNdk
+import com.github.klee0kai.androidnative.env.guessAndroidSdk
+import com.github.klee0kai.androidnative.env.guessJdk
 import org.gradle.api.Project
 
-/**
- * apply MavenPublishPlugin with configs
- */
-class AndroidNativePlugin : Plugin<Project> {
+class AndroidNativePlugin : BasePlugin() {
 
 
     override fun apply(project: Project) {
-//        TODO("implement")
-//        project.afterEvaluate {
-//            project.extensions.configure(PublishingExtension::class.java) {
-//                hummusToMaven(project)
-//            }
-//        }
+
+        val jdkPath = project.guessJdk()
+        val androidSdk = project.guessAndroidSdk()
+        val androidNdk = project.guessAndroidNdk(androidSdk)
+
+
+        println("AndroidNativePlugin: ${jdkPath} ${androidSdk} ${androidNdk}")
+
     }
 }

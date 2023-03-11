@@ -4,8 +4,8 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 
@@ -14,4 +14,19 @@ gradlePlugin {
         id = "com.github.klee0kai.androidnative"
         implementationClass = "com.github.klee0kai.androidnative.AndroidNativePlugin"
     }
+}
+
+
+dependencies {
+    implementation(gradleApi())
+    implementation(localGroovy())
+
+    // https://mvnrepository.com/artifact/com.android.tools.build/builder
+    implementation("com.android.tools.build:builder:7.4.2")
+
+    // https://mvnrepository.com/artifact/com.android.tools.build/gradle
+    implementation("com.android.tools.build:gradle:7.4.2")
+
+    implementation("com.android.tools:sdklib:30.4.2")
+
 }
