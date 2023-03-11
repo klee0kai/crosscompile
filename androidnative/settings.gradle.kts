@@ -13,8 +13,3 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-rootProject.name = "AndroidNative"
-includeBuild("androidnative")
-includeBuild("mavenpublish")
-include("example")
