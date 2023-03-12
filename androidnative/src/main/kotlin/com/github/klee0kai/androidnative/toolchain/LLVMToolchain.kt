@@ -2,6 +2,7 @@ package com.github.klee0kai.androidnative.toolchain
 
 import com.github.klee0kai.androidnative.script.RunWrapper
 import org.gradle.api.Project
+import org.gradle.process.internal.DefaultExecSpec
 import java.io.File
 
 class LLVMToolchain(
@@ -25,8 +26,6 @@ class LLVMToolchain(
 ) : IToolchain {
 
     override fun genWrapperIfNeed(project: Project) {
-//        environment["PATH"] = "${path}:${environment.getOrDefault("PATH", "")}"
-
         runWrapper.alias("clang", clangFile?.absolutePath)
         runWrapper.alias("clang++", clangcppFile?.absolutePath)
         runWrapper.alias("addr2line", addr2line?.absolutePath)
@@ -44,6 +43,19 @@ class LLVMToolchain(
 
 
         runWrapper.gen(project)
+    }
+
+    override fun applyTo(spec: DefaultExecSpec) {
+        spec.apply {
+            environment["PATH"] = "${path}:${environment.getOrDefault("PATH", "")}"
+
+            environment["CC"] = clangFile?.absolutePath
+            environment["CXX"] = clangcppFile?.absolutePath
+
+
+//            environment["CROSS_COMPILE"] = "armv7a-linux"
+            environment["CPP_FLAGS"] = "-Wno-everything"
+        }
     }
 }
 

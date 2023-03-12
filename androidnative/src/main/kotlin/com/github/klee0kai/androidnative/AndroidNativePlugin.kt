@@ -1,5 +1,6 @@
 package com.github.klee0kai.androidnative
 
+import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
 import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.env.guessJdk
@@ -40,7 +41,6 @@ class AndroidNativePlugin : Plugin<Project> {
 
                     taskBlock.invoke(this)
                 }
-
         }
 
         project.extensions.create<AndroidNativeExtension>("androidnative", bashBuild, toolchains)

@@ -1,10 +1,11 @@
 package com.github.klee0kai.androidnative
 
+import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 import com.github.klee0kai.androidnative.toolchain.IToolchain
 import javax.inject.Inject
 
 
-typealias BashBuildLambda = (toolchain: IToolchain?, block: BashBuildTask.() -> Unit) -> Unit
+typealias BashBuildLambda = (toolchain: IToolchain?, block: BashBuildTask.() -> Unit) -> BashBuildTask
 
 open class AndroidNativeExtension @Inject constructor(
     private val __bashBuild: BashBuildLambda,
