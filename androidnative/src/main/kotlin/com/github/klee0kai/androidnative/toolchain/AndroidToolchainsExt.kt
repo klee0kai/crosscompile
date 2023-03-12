@@ -1,6 +1,7 @@
 package com.github.klee0kai.androidnative.toolchain
 
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
+import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.script.RunOnLinuxWrapper
 import com.github.klee0kai.androidnative.utils.pathPlus
 import com.github.klee0kai.androidnative.utils.removeDoubles
@@ -16,7 +17,8 @@ private data class ToolchainPrefixes(
 
 
 fun Project.findAndroidToolchains(
-    androidNdk: String? = guessAndroidNdk()
+    androidSdk: String? = guessAndroidSdk(),
+    androidNdk: String? = guessAndroidNdk(androidSdk),
 ): List<LLVMToolchain> {
     if (androidNdk == null)
         return emptyList()
@@ -36,7 +38,9 @@ fun Project.findAndroidToolchains(
             }
 
             toolchainPrefixes.map {
-                LLVMToolchain(
+                AndroidLLVMToolchain(
+                    sdkPath = androidSdk,
+                    ndkPath = androidNdk,
                     name = it.name,
                     path = binFolder.absolutePath,
                     runWrapper = RunOnLinuxWrapper(it.name),

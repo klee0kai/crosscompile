@@ -5,7 +5,7 @@ import org.gradle.api.Project
 import org.gradle.process.internal.DefaultExecSpec
 import java.io.File
 
-class LLVMToolchain(
+open class LLVMToolchain(
     override val name: String,
     override val path: String,
     override val runWrapper: RunWrapper,

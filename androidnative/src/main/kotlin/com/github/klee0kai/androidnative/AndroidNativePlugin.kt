@@ -21,7 +21,7 @@ class AndroidNativePlugin : Plugin<Project> {
         val jdkPath = project.guessJdk()
         val androidSdk = project.guessAndroidSdk()
         val androidNdk = project.guessAndroidNdk(androidSdk)
-        val toolchains = project.findAndroidToolchains(androidNdk).sortedBy { it.name }
+        val toolchains = project.findAndroidToolchains(androidSdk, androidNdk).sortedBy { it.name }
 
 
         val assembleTask = project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
