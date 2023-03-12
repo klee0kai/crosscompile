@@ -19,14 +19,11 @@ gradlePlugin {
 
 dependencies {
     implementation(gradleApi())
-    implementation(localGroovy())
 
     // https://mvnrepository.com/artifact/com.android.tools.build/builder
     implementation("com.android.tools.build:builder:7.4.2")
 
     // https://mvnrepository.com/artifact/com.android.tools.build/gradle
     implementation("com.android.tools.build:gradle:7.4.2")
-
-    implementation("com.android.tools:sdklib:30.4.2")
 
 }

@@ -4,13 +4,17 @@ import com.github.klee0kai.androidnative.toolchain.IToolchain
 import javax.inject.Inject
 
 
-typealias BashBuildLambda = (toolchain: IToolchain, block: BashBuildTask.() -> Unit) -> Unit
+typealias BashBuildLambda = (toolchain: IToolchain?, block: BashBuildTask.() -> Unit) -> Unit
 
-class AndroidNativeExtension @Inject constructor(
+open class AndroidNativeExtension @Inject constructor(
     private val __bashBuild: BashBuildLambda,
+    val toolchains: List<IToolchain>,
 ) {
-    var message: String = "hello"
 
-    fun bashBuild(toolchain: IToolchain, block: BashBuildTask.() -> Unit) =
+    fun bashBuild(toolchain: IToolchain? = null, block: BashBuildTask.() -> Unit) =
         __bashBuild.invoke(toolchain, block)
+
 }
+
+
+fun AndroidNativeExtension.toolchain(name: String) = toolchains.find { it.name == name }
