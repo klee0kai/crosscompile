@@ -14,7 +14,6 @@ class AndroidNativePlugin : BasePlugin() {
 
     private val taskNames = mutableListOf<String>()
 
-
     override fun apply(project: Project) {
         project.pluginManager.apply(LifecycleBasePlugin::class.java)
 
@@ -23,18 +22,16 @@ class AndroidNativePlugin : BasePlugin() {
         val androidNdk = project.guessAndroidNdk(androidSdk)
         val toolchains = project.findAndroidToolchains(androidNdk).sortedBy { it.name }
 
-        println("AndroidNativePlugin: ${jdkPath} ${androidSdk} ${androidNdk}")
-        println("AndroidNativePlugin toolchains: ${toolchains.map { it.name }}")
-
         val assembleTask = project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
 
-        val __bashBuild: BashBuildLambda = { t, taskBlock ->
+        val bashBuild: BashBuildLambda = { t, taskBlock ->
             val toolchain = t ?: CurOsToolchain
 
             val taskName = genTaskNameFor(toolchain.name)
             project.tasks.register(taskName, BashBuildTask::class.java, toolchain).get()
                 .apply {
                     description = "Build native library with ${toolchain.name} toolchain"
+                    group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
                     toolchain.applyToEnv(this)
 
@@ -43,7 +40,7 @@ class AndroidNativePlugin : BasePlugin() {
 
         }
 
-        project.extensions.create<AndroidNativeExtension>("androidnative", __bashBuild, toolchains)
+        project.extensions.create<AndroidNativeExtension>("androidnative", bashBuild, toolchains)
 
     }
 
