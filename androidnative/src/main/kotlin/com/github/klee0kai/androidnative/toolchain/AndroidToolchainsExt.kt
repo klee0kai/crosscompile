@@ -1,6 +1,7 @@
 package com.github.klee0kai.androidnative.toolchain
 
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
+import com.github.klee0kai.androidnative.script.RunOnLinuxWrapper
 import com.github.klee0kai.androidnative.utils.pathPlus
 import com.github.klee0kai.androidnative.utils.removeDoubles
 import com.github.klee0kai.androidnative.utils.walkStarMasked
@@ -37,6 +38,8 @@ fun Project.findAndroidToolchains(
             toolchainPrefixes.map {
                 LLVMToolchain(
                     name = it.name,
+                    path = binFolder.absolutePath,
+                    runWrapper = RunOnLinuxWrapper(File(project.buildDir, "scripts/${it.name}.sh")),
                     clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
                     clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
                     addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),

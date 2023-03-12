@@ -1,11 +1,15 @@
 package com.github.klee0kai.androidnative.toolchain
 
-import org.gradle.api.tasks.AbstractExecTask
+import com.github.klee0kai.androidnative.script.RunWrapper
 
 interface IToolchain {
 
     val name: String
-    fun applyToEnv(task: AbstractExecTask<*>)
+    val path: String?
+
+    val runWrapper: RunWrapper
+
+    fun genWrapperIfNeed()
 
 }
 

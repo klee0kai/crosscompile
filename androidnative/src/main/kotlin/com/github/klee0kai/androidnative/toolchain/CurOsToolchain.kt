@@ -1,12 +1,14 @@
 package com.github.klee0kai.androidnative.toolchain
 
-import org.gradle.api.tasks.AbstractExecTask
+import com.github.klee0kai.androidnative.script.EmptyRunWrapper
 
 object CurOsToolchain : IToolchain {
-    override val name: String
-        get() = "cur_os"
+    override val name: String = "cur_os"
+    override val path: String? = null
 
-    override fun applyToEnv(task: AbstractExecTask<*>) = Unit
+    override val runWrapper = EmptyRunWrapper
+
+    override fun genWrapperIfNeed() = Unit
 
 }
 

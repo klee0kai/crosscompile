@@ -1,16 +1,16 @@
 package com.github.klee0kai.androidnative
 
-import com.android.build.gradle.BasePlugin
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
 import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.env.guessJdk
 import com.github.klee0kai.androidnative.toolchain.CurOsToolchain
 import com.github.klee0kai.androidnative.toolchain.findAndroidToolchains
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.create
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
-class AndroidNativePlugin : BasePlugin() {
+class AndroidNativePlugin : Plugin<Project> {
 
     private val taskNames = mutableListOf<String>()
 
@@ -21,6 +21,7 @@ class AndroidNativePlugin : BasePlugin() {
         val androidSdk = project.guessAndroidSdk()
         val androidNdk = project.guessAndroidNdk(androidSdk)
         val toolchains = project.findAndroidToolchains(androidNdk).sortedBy { it.name }
+
 
         val assembleTask = project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
 
@@ -33,15 +34,16 @@ class AndroidNativePlugin : BasePlugin() {
                     description = "Build native library with ${toolchain.name} toolchain"
                     group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
-                    toolchain.applyToEnv(this)
 
-                    taskBlock()
+                    toolchain.genWrapperIfNeed()
+
+
+                    taskBlock.invoke(this)
                 }
 
         }
 
         project.extensions.create<AndroidNativeExtension>("androidnative", bashBuild, toolchains)
-
     }
 
 
@@ -54,5 +56,6 @@ class AndroidNativePlugin : BasePlugin() {
         taskNames.add(name)
         return name;
     }
+
 }
 
