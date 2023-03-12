@@ -20,3 +20,5 @@ fun Project.guessAndroidNdk(
         it != null && File(it).exists()
     }
 }
+
+

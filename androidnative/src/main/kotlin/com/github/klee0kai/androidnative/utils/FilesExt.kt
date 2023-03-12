@@ -1,6 +1,7 @@
 package com.github.klee0kai.androidnative.utils
 
 import java.io.File
+import java.nio.file.Path
 
 fun String.pathPlus(path: String?): String {
     return when {
@@ -17,3 +18,43 @@ fun String.pathPlus(path: String?): String {
         }
     }
 }
+
+fun Path.walkStarMasked(): Sequence<File> =
+    sequence<File> {
+        val path = this@walkStarMasked
+        val names = path.toPathNames()
+        val starNameIndex = names.indexOfFirst {
+            it == "*"
+        }
+
+        when {
+            starNameIndex > 0 -> {
+                val file = names.subList(0, starNameIndex).joinToPath().toFile()
+                file.list()?.forEach {
+                    val newMask = (names.subList(0, starNameIndex)
+                            + listOf(it)
+                            + names.subList(starNameIndex + 1, names.size)
+                            ).joinToPath()
+                    yieldAll(newMask.walkStarMasked())
+                }
+            }
+
+            path.toFile().exists() -> {
+                yield(path.toFile())
+            }
+        }
+    }
+
+
+fun List<String>.joinToPath(): Path {
+    return Path.of(
+        first(),
+        *subList(1, size).toTypedArray()
+    )
+}
+
+fun Path.toPathNames(): List<String> =
+    when {
+        startsWith(File.separator) -> listOf(File.separator) + toList().map { it.fileName.toString() }
+        else -> toList().map { it.fileName.toString() }
+    }
