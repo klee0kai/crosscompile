@@ -8,6 +8,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.DefaultExecSpec
 import org.gradle.process.internal.ExecActionFactory
+import java.io.IOException
 import javax.inject.Inject
 
 abstract class BashBuildTask @Inject constructor(
@@ -24,17 +25,22 @@ abstract class BashBuildTask @Inject constructor(
     @TaskAction
     fun exec() {
         execCmds.forEach { cmd ->
-            val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
-            val execResult = objectFactory.property(ExecResult::class.java)
-            val execAction = execAction.newExecAction()
-            if (toolchain.runWrapper.runWrapperPath?.exists() == true) {
-                val args = listOf("bash", toolchain.runWrapper.runWrapperPath?.absolutePath) + cmd
-                execSpec.commandLine(*args.toTypedArray())
-            } else {
-                execSpec.commandLine(*cmd)
+            try {
+                val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
+                val execResult = objectFactory.property(ExecResult::class.java)
+                val execAction = execAction.newExecAction()
+                if (toolchain.runWrapper.runWrapperPath?.exists() == true) {
+                    val args = listOf("bash", toolchain.runWrapper.runWrapperPath?.absolutePath) + cmd
+                    execSpec.commandLine(*args.toTypedArray())
+                } else {
+                    execSpec.commandLine(*cmd)
+                }
+                execSpec.copyTo(execAction)
+
+                execResult.set(execAction.execute())
+            } catch (e: Exception) {
+                throw IOException("can't run $cmd", e)
             }
-            execSpec.copyTo(execAction)
-            execResult.set(execAction.execute())
         }
     }
 

@@ -39,7 +39,7 @@ fun Project.findAndroidToolchains(
                 LLVMToolchain(
                     name = it.name,
                     path = binFolder.absolutePath,
-                    runWrapper = RunOnLinuxWrapper(File(project.buildDir, "scripts/${it.name}.sh")),
+                    runWrapper = RunOnLinuxWrapper(it.name),
                     clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
                     clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
                     addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),

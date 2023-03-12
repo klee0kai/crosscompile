@@ -1,5 +1,6 @@
 package com.github.klee0kai.androidnative.script
 
+import org.gradle.api.Project
 import java.io.File
 
 interface RunWrapper {
@@ -8,6 +9,6 @@ interface RunWrapper {
 
     fun alias(name: String, alias: String?)
 
-    fun gen()
+    fun gen(project: Project)
 
 }

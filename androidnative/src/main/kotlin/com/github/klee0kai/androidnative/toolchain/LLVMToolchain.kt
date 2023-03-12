@@ -1,6 +1,7 @@
 package com.github.klee0kai.androidnative.toolchain
 
 import com.github.klee0kai.androidnative.script.RunWrapper
+import org.gradle.api.Project
 import java.io.File
 
 class LLVMToolchain(
@@ -23,7 +24,7 @@ class LLVMToolchain(
     val dwpFile: File?,
 ) : IToolchain {
 
-    override fun genWrapperIfNeed() {
+    override fun genWrapperIfNeed(project: Project) {
 //        environment["PATH"] = "${path}:${environment.getOrDefault("PATH", "")}"
 
         runWrapper.alias("clang", clangFile?.absolutePath)
@@ -42,7 +43,7 @@ class LLVMToolchain(
         runWrapper.alias("dwp", dwpFile?.absolutePath)
 
 
-        runWrapper.gen()
+        runWrapper.gen(project)
     }
 }
 

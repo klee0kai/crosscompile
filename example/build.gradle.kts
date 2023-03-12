@@ -12,7 +12,7 @@ androidnative {
         println("hello from ${toolchain.name}")
         bash("echo", "run for ${toolchain.name}")
         bash("echo", "run2 for", toolchain.name)
-        bash("which", "gcc")
+        bash("type", "gcc")
     }
 
     bashBuild(android_aarch64(21)) {
@@ -20,6 +20,7 @@ androidnative {
         bash("echo", "run for ${toolchain.name}")
         bash("echo", "run2 for", toolchain.name)
         bash("clang", "--version")
+        bash("type", "clang")
 
     }
 

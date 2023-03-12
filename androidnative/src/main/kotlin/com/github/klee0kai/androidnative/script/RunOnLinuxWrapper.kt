@@ -2,11 +2,14 @@ package com.github.klee0kai.androidnative.script
 
 import com.github.klee0kai.androidnative.utils.indexesSequence
 import com.github.klee0kai.androidnative.utils.insertTo
+import org.gradle.api.Project
 import java.io.File
 
 class RunOnLinuxWrapper(
-    override val runWrapperPath: File
+    val name: String
 ) : RunWrapper {
+
+    override var runWrapperPath: File? = null
 
     private val template = "run_on_linux.sh"
 
@@ -19,8 +22,11 @@ class RunOnLinuxWrapper(
         aliasSh += "function ${name}() {\n $alias \$@ \n } \n\n"
     }
 
-    override fun gen() {
-        if (!runWrapperPath.exists()) {
+    override fun gen(project: Project) {
+        runWrapperPath = File(project.buildDir, "scripts/${name}.sh")
+
+        val file = runWrapperPath ?: return
+        if (!file.exists()) {
             var sh = String(javaClass.getResourceAsStream(template)?.readAllBytes() ?: return)
 
             sh = sh.insertTo(
@@ -28,7 +34,7 @@ class RunOnLinuxWrapper(
                 txt = aliasSh
             )
 
-            with(runWrapperPath.outputStream()) {
+            with(file.outputStream()) {
                 write(sh.toByteArray())
             }
         }

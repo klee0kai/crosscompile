@@ -35,7 +35,7 @@ class AndroidNativePlugin : Plugin<Project> {
                     group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
 
-                    toolchain.genWrapperIfNeed()
+                    toolchain.genWrapperIfNeed(project)
 
 
                     taskBlock.invoke(this)
