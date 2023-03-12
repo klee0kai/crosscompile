@@ -24,6 +24,10 @@ androidnative {
 
     toybox_aArch64.dependsOn(toybox_arm7v.dependsOn(toybox_curOs))
 
+    val openssl_cur = bashBuild {
+        tryBuildOpensslAndroid()
+    }
+
     val openssl_x86 = bashBuild(android_i686(21)) {
         tryBuildOpensslAndroid("android-x86", 21)
     }
@@ -62,18 +66,22 @@ fun BashBuildTask.trybuildToybox(arch: String) {
 }
 
 
-fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int) {
+fun BashBuildTask.tryBuildOpensslAndroid(arch: String? = null, api: Int? = null) {
     val opensslSrc = File(project.buildDir, "openssl")
-    val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
+    val opensslBuild = File(project.buildDir, "libs/openssl-${arch ?: "cur"}/build")
     opensslBuild.parentFile.mkdirs()
 
+    val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
+    val confArgs =
+        "--strict-warnings no-filenames no-afalgeng no-asm threads $additionalArgs --prefix=${opensslBuild.absolutePath}"
     ignoreErr = true
     cmd("git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin ${opensslSrc.absolutePath}")
 
     env {
         workFolder = opensslSrc.absolutePath
+        cmd(if (arch != null) "./Configure" else "./config", confArgs)
+
         cmd("make clean")
-        cmd("./Configure no-filenames no-afalgeng no-asm threads  $arch -D__ANDROID_API__=${api} --prefix=${opensslBuild.absolutePath}")
         cmd("make -j8")
         cmd("make install -j8")
     }
