@@ -12,6 +12,7 @@ object EmptyRunWrapper : RunWrapper {
 
     override fun gen(project: Project) {
         runWrapperPath = File(project.buildDir, "scripts/${template}")
+        runWrapperPath?.parentFile?.mkdirs()
 
         val file = runWrapperPath ?: return
         if (!file.exists()) {

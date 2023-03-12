@@ -4,6 +4,7 @@ import com.github.klee0kai.androidnative.utils.indexesSequence
 import com.github.klee0kai.androidnative.utils.insertTo
 import org.gradle.api.Project
 import java.io.File
+import java.nio.file.Files
 
 class RunOnLinuxWrapper(
     val name: String
@@ -24,6 +25,7 @@ class RunOnLinuxWrapper(
 
     override fun gen(project: Project) {
         runWrapperPath = File(project.buildDir, "scripts/${name}.sh")
+        runWrapperPath?.parentFile?.mkdirs()
 
         val file = runWrapperPath ?: return
         if (!file.exists()) {

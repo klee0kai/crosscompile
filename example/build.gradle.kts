@@ -27,6 +27,7 @@ androidnative {
 fun BashBuildTask.trybuildToybox(arch: String) {
     val toyboxSrc = File(project.buildDir, "toybox")
     val toyboxBuild = File(project.buildDir, "libs/toybox-${arch}")
+    toyboxBuild.parentFile.mkdirs()
 
     ignoreErr = true
     cmd("git clone --depth 1 --branch 0.8.9 git@github.com:landley/toybox.git -o origin ${toyboxSrc.absolutePath}")
