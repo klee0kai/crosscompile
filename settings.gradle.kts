@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidNative"
-includeBuild("androidnative")
+rootProject.name = "crosscompile"
+includeBuild("crosscompile")
 includeBuild("mavenpublish")
 include("example")
