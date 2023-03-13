@@ -57,5 +57,10 @@ open class LLVMToolchain(
             environment["CPP_FLAGS"] = "-Wno-everything"
         }
     }
+
+
+    override fun toString(): String {
+        return "llvm toolchain: $name path $path"
+    }
 }
 

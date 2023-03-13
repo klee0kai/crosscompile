@@ -12,7 +12,7 @@ java {
 gradlePlugin {
     plugins.register("androidnative") {
         id = "com.github.klee0kai.androidnative"
-        implementationClass = "com.github.klee0kai.androidnative.AndroidNativePlugin"
+        implementationClass = "com.github.klee0kai.androidnative.CrossCompilePlugin"
     }
 }
 

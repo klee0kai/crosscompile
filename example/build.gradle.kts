@@ -6,44 +6,43 @@ import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 
 plugins {
     id("com.github.klee0kai.androidnative")
+    id("com.dorongold.task-tree") version "2.1.1"
 }
 
 
 
-androidnative {
+crosscompile {
+    val toybox = "toybox"
+    val openssl = "openssl"
 
-    val toybox_curOs = bashBuild {
+    bashBuild(toybox) {
         trybuildToybox("cur_os")
     }
-    val toybox_arm7v = bashBuild(android_arm7a(30)) {
+    bashBuild(toybox, android_arm7a(30)) {
         trybuildToybox("android_arm7a")
     }
-    val toybox_aArch64 = bashBuild(android_aarch64(30)) {
+    bashBuild(toybox, android_aarch64(30)) {
         trybuildToybox("android_aarch64")
     }
 
-    toybox_aArch64.dependsOn(toybox_arm7v.dependsOn(toybox_curOs))
-
-    val openssl_cur = bashBuild {
+    bashBuild(openssl) {
         tryBuildOpensslAndroid()
     }
 
-    val openssl_x86 = bashBuild(android_i686(21)) {
+    bashBuild(openssl, android_i686(21)) {
         tryBuildOpensslAndroid("android-x86", 21)
     }
 
-    val openssl_x86_64 = bashBuild(android_x86_64(21)) {
+    bashBuild(openssl, android_x86_64(21)) {
         tryBuildOpensslAndroid("android-x86_64", 21)
     }
 
-    val openssl_arm7v = bashBuild(android_arm7a(21)) {
+    bashBuild(openssl, android_arm7a(21)) {
         tryBuildOpensslAndroid("android-arm", 21)
     }
-    val openssl_aArch64 = bashBuild(android_aarch64(21)) {
+    bashBuild(openssl, android_aarch64(21)) {
         tryBuildOpensslAndroid("android-arm64", 21)
     }
-
-    openssl_aArch64.dependsOn(openssl_arm7v.dependsOn(openssl_x86.dependsOn(openssl_x86_64)))
 
 }
 

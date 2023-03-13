@@ -4,7 +4,13 @@ import com.github.klee0kai.androidnative.script.EmptyRunWrapper
 import org.gradle.api.Project
 import org.gradle.process.internal.DefaultExecSpec
 
-object CurOsToolchain : IToolchain {
+/**
+ * Native toolchain:
+ *  build = host = target
+ *
+ * No any overrides
+ */
+object NativeToolchain : IToolchain {
     override val name: String = "cur_os"
     override val path: String? = null
 
@@ -15,6 +21,9 @@ object CurOsToolchain : IToolchain {
 
     override fun applyTo(spec: DefaultExecSpec) = Unit
 
+    override fun toString(): String {
+        return "current os toolchain: no overrides"
+    }
 
 }
 
