@@ -10,6 +10,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.HelpTasksPlugin.HELP_GROUP
 import org.gradle.kotlin.dsl.create
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
@@ -17,23 +18,24 @@ class CrossCompilePlugin : Plugin<Project> {
 
     private val taskNames = mutableListOf<String>()
 
+    override fun apply(project: Project) = project.applyOnProject()
 
-    override fun apply(project: Project) {
-        project.pluginManager.apply(LifecycleBasePlugin::class.java)
+    private fun Project.applyOnProject() {
+        pluginManager.apply(LifecycleBasePlugin::class.java)
 
-        val jdkPath = project.guessJdk()
-        val androidSdk = project.guessAndroidSdk()
-        val androidNdk = project.guessAndroidNdk(androidSdk)
-        val toolchains = project.findAndroidToolchains(androidSdk, androidNdk).sortedBy { it.name }
+        val jdkPath = guessJdk()
+        val androidSdk = guessAndroidSdk()
+        val androidNdk = guessAndroidNdk(androidSdk)
+        val toolchains = findAndroidToolchains(androidSdk, androidNdk).sortedBy { it.name }
 
-        val assembleTask = project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
-        val exists = mutableMapOf<String, Task>()
+        val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
+        val libGroups = mutableMapOf<String, MutableList<Task>>()
 
         val bashBuild: BashBuildLambda = { name, t, taskBlock ->
             val toolchain = t ?: NativeToolchain
 
             val taskName = genTaskNameFor("${name}-${toolchain.name}")
-            val task = project.tasks.register(taskName, BashBuildTask::class.java, toolchain).get()
+            val task = tasks.register(taskName, BashBuildTask::class.java, toolchain).get()
                 .apply {
                     description = "Build $name library with ${toolchain.name} toolchain"
                     group = LifecycleBasePlugin.BUILD_GROUP
@@ -44,15 +46,17 @@ class CrossCompilePlugin : Plugin<Project> {
                     taskBlock.invoke(this)
                 }
 
-            exists.getOrDefault(name, null)?.let { task.mustRunAfter(it) }
-            exists[name] = task
+            libGroups.putIfAbsent(name, mutableListOf())
+            libGroups[name]?.lastOrNull()?.let { task.mustRunAfter(it) }
+            libGroups[name]?.add(task)
+
             task
         }
 
 
-        project.tasks.register("toolchains", DefaultTask::class.java) {
-            description = "Print all available crosscompile toolchains"
-            group = LifecycleBasePlugin.BUILD_GROUP
+        tasks.register("cppToolchains", DefaultTask::class.java) {
+            description = "Print all available crosscompile cpp toolchains"
+            group = HELP_GROUP
 
             doLast {
                 println("Available toolchains:\n")
@@ -62,7 +66,19 @@ class CrossCompilePlugin : Plugin<Project> {
             }
         }
 
-        project.extensions.create<AndroidNativeExtension>("crosscompile", bashBuild, toolchains)
+        extensions.create<AndroidNativeExtension>("crosscompile", bashBuild, toolchains)
+
+        afterEvaluate {
+            libGroups.forEach { lib ->
+                tasks.register(lib.key, DefaultTask::class.java) {
+                    description = "Build $name library for all arch"
+                    group = LifecycleBasePlugin.BUILD_GROUP
+
+                    lib.value.forEach { dependsOn(it) }
+                }
+            }
+        }
+
     }
 
 

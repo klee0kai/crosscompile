@@ -70,16 +70,19 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String? = null, api: Int? = null)
     val opensslBuild = File(project.buildDir, "libs/openssl-${arch ?: "cur"}/build")
     opensslBuild.parentFile.mkdirs()
 
-    val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
-    val confArgs =
-        "--strict-warnings no-filenames no-afalgeng no-asm threads $additionalArgs --prefix=${opensslBuild.absolutePath}"
-    ignoreErr = true
-    cmd("git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin ${opensslSrc.absolutePath}")
+    env {
+        ignoreErr = true
+        cmd("git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin ${opensslSrc.absolutePath}")
+    }
 
     env {
+        ignoreErr = false
         workFolder = opensslSrc.absolutePath
-        cmd(if (arch != null) "./Configure" else "./config", confArgs)
 
+        val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
+        val confArgs = "no-filenames no-afalgeng no-asm threads  $additionalArgs --prefix=${opensslBuild.absolutePath}"
+        val configScript = if (arch != null) "./Configure" else "./config"
+        cmd("$configScript $confArgs")
         cmd("make clean")
         cmd("make -j8")
         cmd("make install -j8")
