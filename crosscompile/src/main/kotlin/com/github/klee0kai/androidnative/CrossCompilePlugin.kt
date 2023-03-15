@@ -4,6 +4,7 @@ import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
 import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.env.guessJdk
+import com.github.klee0kai.androidnative.toolchain.IToolchain
 import com.github.klee0kai.androidnative.toolchain.NativeToolchain
 import com.github.klee0kai.androidnative.toolchain.findAndroidToolchains
 import org.gradle.api.DefaultTask
@@ -29,19 +30,16 @@ class CrossCompilePlugin : Plugin<Project> {
         val toolchains = findAndroidToolchains(androidSdk, androidNdk).sortedBy { it.name }
 
         val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
-        val libGroups = mutableMapOf<String, MutableList<Task>>()
+        val libGroups = mutableMapOf<String, MutableList<BashBuildTask>>()
 
         val bashBuild: BashBuildLambda = { name, t, taskBlock ->
             val toolchain = t ?: NativeToolchain
 
             val taskName = genTaskNameFor("${name}-${toolchain.name}")
-            val task = tasks.register(taskName, BashBuildTask::class.java, toolchain).get()
+            val task = tasks.register(taskName, BashBuildTask::class.java, name, toolchain).get()
                 .apply {
-                    description = "Build $name library with ${toolchain.name} toolchain"
                     group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
-
-                    toolchain.genWrapperIfNeed(project)
 
                     taskBlock.invoke(this)
                 }
@@ -53,7 +51,37 @@ class CrossCompilePlugin : Plugin<Project> {
             task
         }
 
+        extensions.create<AndroidNativeExtension>("crosscompile", bashBuild, toolchains)
 
+        afterEvaluate {
+            registerToolchainsTask(toolchains)
+            libGroups.forEach { lib ->
+                lib.value.forEach { it.fillDescIfNull() }
+                registerLibAssembleTask(lib.value)
+            }
+        }
+
+    }
+
+    private fun BashBuildTask.fillDescIfNull() {
+        if (description.isNullOrBlank()) {
+            description = "Build $libName for ${toolchain.name}"
+        }
+    }
+
+    private fun Project.registerLibAssembleTask(libArchTasks: List<BashBuildTask>) {
+        val name = libArchTasks.first().libName
+
+        tasks.register(name, DefaultTask::class.java) {
+            val forAllArch = if (libArchTasks.size > 1) "for all arch" else ""
+            description = "$name $forAllArch"
+            group = LifecycleBasePlugin.BUILD_GROUP
+
+            libArchTasks.forEach { dependsOn(it) }
+        }
+    }
+
+    private fun Project.registerToolchainsTask(toolchains: List<IToolchain>) {
         tasks.register("cppToolchains", DefaultTask::class.java) {
             description = "Print all available crosscompile cpp toolchains"
             group = HELP_GROUP
@@ -65,20 +93,6 @@ class CrossCompilePlugin : Plugin<Project> {
                 }
             }
         }
-
-        extensions.create<AndroidNativeExtension>("crosscompile", bashBuild, toolchains)
-
-        afterEvaluate {
-            libGroups.forEach { lib ->
-                tasks.register(lib.key, DefaultTask::class.java) {
-                    description = "Build $name library for all arch"
-                    group = LifecycleBasePlugin.BUILD_GROUP
-
-                    lib.value.forEach { dependsOn(it) }
-                }
-            }
-        }
-
     }
 
 

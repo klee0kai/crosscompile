@@ -28,17 +28,15 @@ class RunOnLinuxWrapper(
         runWrapperPath?.parentFile?.mkdirs()
 
         val file = runWrapperPath ?: return
-        if (!file.exists()) {
-            var sh = String(javaClass.getResourceAsStream(template)?.readAllBytes() ?: return)
+        var sh = String(javaClass.getResourceAsStream(template)?.readAllBytes() ?: return)
 
-            sh = sh.insertTo(
-                index = sh.indexesSequence("\n").take(4).last(),
-                txt = aliasSh
-            )
+        sh = sh.insertTo(
+            index = sh.indexesSequence("\n").take(4).last(),
+            txt = aliasSh
+        )
 
-            with(file.outputStream()) {
-                write(sh.toByteArray())
-            }
+        with(file.outputStream()) {
+            write(sh.toByteArray())
         }
     }
 }

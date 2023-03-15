@@ -14,6 +14,8 @@ open class BashBuildTask @Inject constructor(
     @Input
     val execAction: ExecActionFactory,
     @Input
+    val libName: String,
+    @Input
     val toolchain: IToolchain,
 ) : DefaultTask(), IEnvContainer {
 
@@ -42,7 +44,10 @@ open class BashBuildTask @Inject constructor(
     }
 
     @TaskAction
-    override fun exec() = curEnv.exec()
+    override fun exec() {
+        toolchain.genWrapperIfNeed(project)
+        curEnv.exec()
+    }
 
     override fun cmd(vararg cmd: Any) = curEnv.cmd(*cmd)
 
