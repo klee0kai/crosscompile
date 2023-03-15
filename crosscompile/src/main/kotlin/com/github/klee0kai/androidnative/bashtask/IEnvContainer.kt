@@ -23,8 +23,8 @@ interface IEnvContainer : IExec {
 }
 
 fun IEnvContainer.configAll() {
-    toolchain.applyBinAppAlias(this)
-    toolchain.applyAutoToolConf(this)
+    configBinAlias()
+    configAutoTool()
 }
 
 fun IEnvContainer.configBinAlias() =

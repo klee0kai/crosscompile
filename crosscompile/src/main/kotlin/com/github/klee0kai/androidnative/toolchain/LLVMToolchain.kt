@@ -39,14 +39,18 @@ open class LLVMToolchain(
         runWrapper.alias("dwp", dwpFile?.absolutePath)
     }
 
-    override fun applyAutoToolConf(en: IEnvContainer) = en.run {
+    override fun applyAutoToolConf(container: IEnvContainer) = container.run {
         env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
         env["CC"] = clangFile?.absolutePath
         env["CXX"] = clangcppFile?.absolutePath
+        env["CPP"] = clangcppFile?.absolutePath
+        env["AR"] = arFile?.absolutePath
+        env["AS"] = asFile?.absolutePath
+        env["LD"] = ldFile?.absolutePath
+        env["NM"] = nmFile?.absolutePath
+        env["OBJCOPY"] = objcopyFile?.absolutePath
 
-//            environment["CROSS_COMPILE"] = "armv7a-linux"
-        env["CPP_FLAGS"] = "-Wno-everything"
     }
 
 

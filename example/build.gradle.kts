@@ -21,7 +21,7 @@ crosscompile {
 
 
     val toyboxSrcTask = bashBuild("${toybox}_src") {
-        description = "Download ${toybox} source codes"
+        description = "Download $toybox source codes"
         doFirst { toyboxSrc.parentFile.mkdirs() }
 
         ignoreErr = true

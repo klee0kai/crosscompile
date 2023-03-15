@@ -5,7 +5,7 @@ import java.io.File
 
 interface IRunWrapper {
 
-    val runWrapperPath: File?
+    var runWrapperPath: File?
 
     fun alias(name: String, alias: String?)
 

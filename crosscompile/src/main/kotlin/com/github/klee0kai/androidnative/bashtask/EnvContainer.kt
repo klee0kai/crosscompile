@@ -21,8 +21,7 @@ class EnvContainer(
     override val env: MutableMap<String, Any?>
         get() = execSpec.environment
 
-    override val runWrapper: IRunWrapper
-        get() = RunOnLinuxWrapper("${name}.sh")
+    override val runWrapper: IRunWrapper = RunOnLinuxWrapper(name)
 
 
     override var ignoreErr: Boolean = false
