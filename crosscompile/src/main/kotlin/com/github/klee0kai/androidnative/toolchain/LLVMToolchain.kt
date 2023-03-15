@@ -1,14 +1,11 @@
 package com.github.klee0kai.androidnative.toolchain
 
-import com.github.klee0kai.androidnative.script.RunWrapper
-import org.gradle.api.Project
-import org.gradle.process.internal.DefaultExecSpec
+import com.github.klee0kai.androidnative.bashtask.IEnvContainer
 import java.io.File
 
 open class LLVMToolchain(
     override val name: String,
     override val path: String,
-    override val runWrapper: RunWrapper,
     val clangFile: File?,
     val clangcppFile: File?,
     val addr2line: File?,
@@ -25,7 +22,7 @@ open class LLVMToolchain(
     val dwpFile: File?,
 ) : IToolchain {
 
-    override fun genWrapperIfNeed(project: Project) {
+    override fun applyBinAppAlias(envContainer: IEnvContainer) = envContainer.run {
         runWrapper.alias("clang", clangFile?.absolutePath)
         runWrapper.alias("clang++", clangcppFile?.absolutePath)
         runWrapper.alias("addr2line", addr2line?.absolutePath)
@@ -40,22 +37,16 @@ open class LLVMToolchain(
         runWrapper.alias("size", sizeFile?.absolutePath)
         runWrapper.alias("strings", stringsFile?.absolutePath)
         runWrapper.alias("dwp", dwpFile?.absolutePath)
-
-
-        runWrapper.gen(project)
     }
 
-    override fun applyTo(spec: DefaultExecSpec) {
-        spec.apply {
-            environment["PATH"] = "${path}:${environment.getOrDefault("PATH", "")}"
+    override fun applyAutoToolConf(en: IEnvContainer) = en.run {
+        env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
-            environment["CC"] = clangFile?.absolutePath
-            environment["CXX"] = clangcppFile?.absolutePath
-
+        env["CC"] = clangFile?.absolutePath
+        env["CXX"] = clangcppFile?.absolutePath
 
 //            environment["CROSS_COMPILE"] = "armv7a-linux"
-            environment["CPP_FLAGS"] = "-Wno-everything"
-        }
+        env["CPP_FLAGS"] = "-Wno-everything"
     }
 
 

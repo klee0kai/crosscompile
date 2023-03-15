@@ -4,11 +4,10 @@ import com.github.klee0kai.androidnative.utils.indexesSequence
 import com.github.klee0kai.androidnative.utils.insertTo
 import org.gradle.api.Project
 import java.io.File
-import java.nio.file.Files
 
 class RunOnLinuxWrapper(
     val name: String
-) : RunWrapper {
+) : IRunWrapper {
 
     override var runWrapperPath: File? = null
 

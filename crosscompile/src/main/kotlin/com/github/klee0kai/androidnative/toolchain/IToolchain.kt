@@ -1,19 +1,16 @@
 package com.github.klee0kai.androidnative.toolchain
 
-import com.github.klee0kai.androidnative.script.RunWrapper
-import org.gradle.api.Project
-import org.gradle.process.internal.DefaultExecSpec
+import com.github.klee0kai.androidnative.bashtask.IEnvContainer
 
 interface IToolchain {
 
     val name: String
     val path: String?
 
-    val runWrapper: RunWrapper
+    fun applyBinAppAlias(envContainer: IEnvContainer) = Unit
 
-    fun genWrapperIfNeed(project: Project)
+    fun applyAutoToolConf(envContainer: IEnvContainer) = Unit
 
-    fun applyTo(spec: DefaultExecSpec)
 
 }
 

@@ -3,6 +3,7 @@ import com.github.klee0kai.androidnative.android_arm7a
 import com.github.klee0kai.androidnative.android_i686
 import com.github.klee0kai.androidnative.android_x86_64
 import com.github.klee0kai.androidnative.bashtask.BashBuildTask
+import com.github.klee0kai.androidnative.bashtask.configAll
 
 plugins {
     id("com.github.klee0kai.androidnative")
@@ -66,6 +67,7 @@ fun BashBuildTask.trybuildToybox(arch: String) = env {
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
+    configAll()
     cmd("make clean")
     cmd("./configure")
     cmd("make")
@@ -85,6 +87,7 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String? = null, api: Int? = null)
         ignoreErr = false
         workFolder = opensslSrc.absolutePath
 
+        configAll()
         val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
         val confArgs = "no-filenames no-afalgeng no-asm threads  $additionalArgs --prefix=${opensslBuild.absolutePath}"
         val configScript = if (arch != null) "./Configure" else "./config"

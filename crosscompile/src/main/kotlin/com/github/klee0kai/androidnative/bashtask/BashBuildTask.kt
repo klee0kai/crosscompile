@@ -1,5 +1,6 @@
 package com.github.klee0kai.androidnative.bashtask
 
+import com.github.klee0kai.androidnative.script.IRunWrapper
 import com.github.klee0kai.androidnative.toolchain.IToolchain
 import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
@@ -16,12 +17,16 @@ open class BashBuildTask @Inject constructor(
     @Input
     val libName: String,
     @Input
-    val toolchain: IToolchain,
+    override val toolchain: IToolchain,
 ) : DefaultTask(), IEnvContainer {
 
     @get:Input
     override val env: MutableMap<String, Any?>
         get() = curEnv.env
+
+    @get:Input
+    override val runWrapper: IRunWrapper
+        get() = curEnv.runWrapper
 
     @get:Input
     override var workFolder: String
@@ -37,21 +42,16 @@ open class BashBuildTask @Inject constructor(
             curEnv.ignoreErr = value
         }
 
-    private val curEnv = EnvContainer(objectFactory, execAction, toolchain)
+    private val curEnv = EnvContainer(name, project, objectFactory, execAction, toolchain)
 
-    init {
-        toolchain.applyTo(curEnv.execSpec)
-    }
 
     @TaskAction
-    override fun exec() {
-        toolchain.genWrapperIfNeed(project)
-        curEnv.exec()
-    }
+    override fun exec() = curEnv.exec()
+
 
     override fun cmd(vararg cmd: Any) = curEnv.cmd(*cmd)
 
-    override fun env(block: IEnvContainer.() -> Unit) = curEnv.env(block)
+    override fun env(name: String?, block: IEnvContainer.() -> Unit) = curEnv.env(name, block)
 
 
 }
