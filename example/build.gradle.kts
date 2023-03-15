@@ -71,8 +71,12 @@ fun BashBuildTask.trybuildToybox(arch: String) = env {
     cmd("make clean")
     cmd("./configure")
     cmd("make")
-    cmd("cp toybox $toyboxBuild")
-    cmd("file toybox")
+
+    env {
+        ignoreErr = true
+        cmd("cp toybox $toyboxBuild")
+        cmd("file toybox")
+    }
 }
 
 
