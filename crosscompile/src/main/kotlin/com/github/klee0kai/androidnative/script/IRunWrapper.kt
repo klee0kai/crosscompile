@@ -9,6 +9,8 @@ interface IRunWrapper {
 
     fun alias(name: String, alias: String?)
 
+    fun env(name: String, value: String?)
+
     fun gen(project: Project)
 
 }

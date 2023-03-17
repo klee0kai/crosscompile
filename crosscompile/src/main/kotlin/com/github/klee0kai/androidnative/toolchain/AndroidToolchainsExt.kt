@@ -18,9 +18,10 @@ private data class ToolchainPrefixes(
 fun Project.findAndroidToolchains(
     androidSdk: String? = guessAndroidSdk(),
     androidNdk: String? = guessAndroidNdk(androidSdk),
-): List<LLVMToolchain> {
+): List<AndroidLLVMToolchain> {
     if (androidNdk == null)
         return emptyList()
+
     val toolchains = Paths.get(androidNdk.pathPlus("toolchains/llvm/prebuilt/*/bin"))
         .walkStarMasked()
         .flatMap { binFolder ->
@@ -40,27 +41,33 @@ fun Project.findAndroidToolchains(
                 AndroidLLVMToolchain(
                     sdkPath = androidSdk,
                     ndkPath = androidNdk,
-                    name = it.name,
-                    path = binFolder.absolutePath,
-                    clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
-                    clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
-                    addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),
-                    arFile = binFolder.findFirstFile(it.prefixes, "ar"),
-                    asFile = binFolder.findFirstFile(it.prefixes, "as"),
-                    ldFile = binFolder.findFirstFile(it.prefixes, "ld"),
-                    nmFile = binFolder.findFirstFile(it.prefixes, "nm"),
-                    objcopyFile = binFolder.findFirstFile(it.prefixes, "objcopy"),
-                    objdumpFile = binFolder.findFirstFile(it.prefixes, "objdump"),
-                    runlibFile = binFolder.findFirstFile(it.prefixes, "runlib"),
-                    readelfFile = binFolder.findFirstFile(it.prefixes, "readelf"),
-                    sizeFile = binFolder.findFirstFile(it.prefixes, "size"),
-                    stringsFile = binFolder.findFirstFile(it.prefixes, "strings"),
-                    dwpFile = binFolder.findFirstFile(it.prefixes, "dwp"),
+                    toolchain = LLVMToolchain(
+                        name = it.name,
+                        path = binFolder.parentFile.absolutePath,
+                        sysroot = File(binFolder.parentFile, "sysroot"),
+                        includeFolders = listOf(),
+                        libs = listOf(),
+                        clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
+                        clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
+                        addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),
+                        arFile = binFolder.findFirstFile(it.prefixes, "ar"),
+                        asFile = binFolder.findFirstFile(it.prefixes, "as"),
+                        ldFile = binFolder.findFirstFile(it.prefixes, "ld"),
+                        nmFile = binFolder.findFirstFile(it.prefixes, "nm"),
+                        objcopyFile = binFolder.findFirstFile(it.prefixes, "objcopy"),
+                        objdumpFile = binFolder.findFirstFile(it.prefixes, "objdump"),
+                        runlibFile = binFolder.findFirstFile(it.prefixes, "runlib"),
+                        readelfFile = binFolder.findFirstFile(it.prefixes, "readelf"),
+                        sizeFile = binFolder.findFirstFile(it.prefixes, "size"),
+                        stringsFile = binFolder.findFirstFile(it.prefixes, "strings"),
+                        dwpFile = binFolder.findFirstFile(it.prefixes, "dwp"),
+                    )
                 )
             }
         }
 
-    return toolchains.toList().removeDoubles { it1, it2 -> it1.name == it2.name }
+    return toolchains.toList()
+        .removeDoubles { it1, it2 -> it1.name == it2.name }
 }
 
 private fun File.findFirstFile(prefixs: List<String>, fileName: String): File? {

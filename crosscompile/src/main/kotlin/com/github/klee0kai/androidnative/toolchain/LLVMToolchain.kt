@@ -6,51 +6,54 @@ import java.io.File
 open class LLVMToolchain(
     override val name: String,
     override val path: String,
-    val clangFile: File?,
-    val clangcppFile: File?,
-    val addr2line: File?,
-    val arFile: File?,
-    val asFile: File?,
-    val ldFile: File?,
-    val nmFile: File?,
-    val objcopyFile: File?,
-    val objdumpFile: File?,
-    val runlibFile: File?,
-    val readelfFile: File?,
-    val sizeFile: File?,
-    val stringsFile: File?,
-    val dwpFile: File?,
-) : IToolchain {
 
-    override fun applyBinAppAlias(envContainer: IEnvContainer) = envContainer.run {
-        runWrapper.alias("clang", clangFile?.absolutePath)
-        runWrapper.alias("clang++", clangcppFile?.absolutePath)
-        runWrapper.alias("addr2line", addr2line?.absolutePath)
-        runWrapper.alias("ar", arFile?.absolutePath)
-        runWrapper.alias("as", asFile?.absolutePath)
-        runWrapper.alias("ld", ldFile?.absolutePath)
-        runWrapper.alias("nm", nmFile?.absolutePath)
-        runWrapper.alias("objcopy", objcopyFile?.absolutePath)
-        runWrapper.alias("objdump", objdumpFile?.absolutePath)
-        runWrapper.alias("runlib", runlibFile?.absolutePath)
-        runWrapper.alias("readelf", readelfFile?.absolutePath)
-        runWrapper.alias("size", sizeFile?.absolutePath)
-        runWrapper.alias("strings", stringsFile?.absolutePath)
-        runWrapper.alias("dwp", dwpFile?.absolutePath)
+    override val sysroot: File,
+    override val includeFolders: List<File>,
+    override val libs: List<File>,
+    override val clangFile: File?,
+    override val clangcppFile: File?,
+    override val addr2line: File?,
+    override val arFile: File?,
+    override val asFile: File?,
+    override val ldFile: File?,
+    override val nmFile: File?,
+    override val objcopyFile: File?,
+    override val objdumpFile: File?,
+    override val runlibFile: File?,
+    override val readelfFile: File?,
+    override val sizeFile: File?,
+    override val stringsFile: File?,
+    override val dwpFile: File?,
+) : ILLVMToolchain {
+
+    override fun applyBinAppAlias(envContainer: IEnvContainer) = envContainer.runWrapper.run {
+        alias("clang", clangFile?.absolutePath)
+        alias("clang++", clangcppFile?.absolutePath)
+        alias("addr2line", addr2line?.absolutePath)
+        alias("ar", arFile?.absolutePath)
+        alias("as", asFile?.absolutePath)
+        alias("ld", ldFile?.absolutePath)
+        alias("nm", nmFile?.absolutePath)
+        alias("objcopy", objcopyFile?.absolutePath)
+        alias("objdump", objdumpFile?.absolutePath)
+        alias("runlib", runlibFile?.absolutePath)
+        alias("readelf", readelfFile?.absolutePath)
+        alias("size", sizeFile?.absolutePath)
+        alias("strings", stringsFile?.absolutePath)
+        alias("dwp", dwpFile?.absolutePath)
     }
 
-    override fun applyAutoToolConf(container: IEnvContainer) = container.run {
-        env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
+    override fun applyAutoToolConf(envContainer: IEnvContainer) = envContainer.runWrapper.run {
+        env("PATH", "${path}:\$PATH")
 
-        env["CC"] = clangFile?.absolutePath
-        env["CXX"] = clangcppFile?.absolutePath
-        env["CPP"] = clangcppFile?.absolutePath
-        env["AR"] = arFile?.absolutePath
-        env["AS"] = asFile?.absolutePath
-        env["LD"] = ldFile?.absolutePath
-        env["NM"] = nmFile?.absolutePath
-        env["OBJCOPY"] = objcopyFile?.absolutePath
-
+        env("CC", clangFile?.absolutePath)
+        env("CXX", clangcppFile?.absolutePath)
+        env("CPP", clangcppFile?.absolutePath)
+        env("AR", arFile?.absolutePath)
+        env("AS", asFile?.absolutePath)
+        env("LD", ldFile?.absolutePath)
+        env("NM", nmFile?.absolutePath)
+        env("OBJCOPY", objcopyFile?.absolutePath)
     }
 
 

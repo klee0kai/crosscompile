@@ -15,11 +15,20 @@ class RunOnLinuxWrapper(
 
     private var aliasSh: String = ""
 
+    private var envSh: String = ""
+
     override fun alias(name: String, alias: String?) {
         if (alias == null) {
             return
         }
-        aliasSh += "function ${name}() {\n $alias \$@ \n } \n\n"
+        aliasSh += "function $name() {\n $alias \$@ \n } \n\n"
+    }
+
+    override fun env(name: String, value: String?) {
+        if (value == null) {
+            return
+        }
+        envSh += "export $name=\"$value\"\n"
     }
 
     override fun gen(project: Project) {
@@ -31,7 +40,7 @@ class RunOnLinuxWrapper(
 
         sh = sh.insertTo(
             index = sh.indexesSequence("\n").take(4).last(),
-            txt = aliasSh
+            txt = "${envSh}\n${aliasSh}"
         )
 
         with(file.outputStream()) {

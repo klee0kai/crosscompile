@@ -9,7 +9,6 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.DefaultExecSpec
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
-import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
@@ -20,12 +19,11 @@ class EnvContainer(
     val objectFactory: ObjectFactory,
     val execAction: ExecActionFactory,
     override val toolchain: IToolchain,
+    override val runWrapper: IRunWrapper = RunOnLinuxWrapper(name),
 ) : IEnvContainer {
 
     override val env: MutableMap<String, Any?>
         get() = execSpec.environment
-
-    override val runWrapper: IRunWrapper = RunOnLinuxWrapper(name)
 
     override var ignoreErr: Boolean = false
 
@@ -64,11 +62,11 @@ class EnvContainer(
                 execAction.errorOutput = errStream;
 
 
-                result = execAction.execute()
+//                result = execAction.execute()
 
-                if (result.exitValue != 0) {
-                    throw ExecException("Cmd ${cmd.joinToString(" ")} finished with exit code ${result.exitValue}")
-                }
+//                if (result.exitValue != 0) {
+//                    throw ExecException("Cmd ${cmd.joinToString(" ")} finished with exit code ${result.exitValue}")
+//                }
             } catch (e: Exception) {
                 if (!ignoreErr) {
                     val errStreamText = String(errStream.toByteArray())
