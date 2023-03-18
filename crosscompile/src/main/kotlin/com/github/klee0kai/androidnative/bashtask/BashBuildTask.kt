@@ -21,10 +21,6 @@ open class BashBuildTask @Inject constructor(
 ) : DefaultTask(), IEnvContainer {
 
     @get:Input
-    override val env: MutableMap<String, Any?>
-        get() = curEnv.env
-
-    @get:Input
     override val runWrapper: IRunWrapper
         get() = curEnv.runWrapper
 
@@ -46,7 +42,10 @@ open class BashBuildTask @Inject constructor(
 
 
     @TaskAction
-    override fun exec() = curEnv.exec()
+    override fun exec() {
+        runWrapper.gen(project)
+        curEnv.exec()
+    }
 
 
     override fun cmd(vararg cmd: Any) = curEnv.cmd(*cmd)

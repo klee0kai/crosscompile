@@ -7,8 +7,6 @@ interface IEnvContainer : IExec {
 
     val toolchain: IToolchain
 
-    val env: MutableMap<String, Any?>
-
     val runWrapper: IRunWrapper
 
     var workFolder: String

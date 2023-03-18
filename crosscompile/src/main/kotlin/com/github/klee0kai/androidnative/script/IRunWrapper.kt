@@ -11,6 +11,8 @@ interface IRunWrapper {
 
     fun env(name: String, value: String?)
 
+    fun subWrapper(name: String): IRunWrapper
+
     fun gen(project: Project)
 
 }

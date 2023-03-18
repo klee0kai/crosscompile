@@ -22,9 +22,6 @@ class EnvContainer(
     override val runWrapper: IRunWrapper = RunOnLinuxWrapper(name),
 ) : IEnvContainer {
 
-    override val env: MutableMap<String, Any?>
-        get() = execSpec.environment
-
     override var ignoreErr: Boolean = false
 
     override var workFolder: String
@@ -43,7 +40,8 @@ class EnvContainer(
         env.project,
         env.objectFactory,
         env.execAction,
-        env.toolchain
+        env.toolchain,
+        env.runWrapper.subWrapper(name),
     ) {
         ignoreErr = env.ignoreErr
         env.execSpec.copyTo(execSpec)
@@ -85,7 +83,6 @@ class EnvContainer(
     }
 
     override fun exec() {
-        runWrapper.gen(project)
         exec.forEach { it.exec() }
     }
 
