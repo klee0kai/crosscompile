@@ -1,10 +1,10 @@
-import com.github.klee0kai.androidnative.*
-import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.env.findAndroidNdk
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.*
+import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
+import com.github.klee0kai.crosscompile.env.findAndroidNdk
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
 plugins {
-    id("com.github.klee0kai.androidnative")
+    id("com.github.klee0kai.crosscompile")
     id("com.dorongold.task-tree") version "2.1.1"
 }
 
@@ -12,7 +12,8 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
-val androidApi = 30
+val toyboxAndroidApi = 30
+val opensslAndroidApi = 21
 
 crosscompile {
 
@@ -22,7 +23,7 @@ crosscompile {
 
 }
 
-fun AndroidNativeExtension.toyboxBuilds() {
+fun CrossCompileExtension.toyboxBuilds() {
     val toyboxSrcTask = bashBuild("${toybox}_src") {
         description = "Download $toybox source codes"
         doFirst { toyboxSrc.parentFile.mkdirs() }
@@ -45,22 +46,22 @@ fun AndroidNativeExtension.toyboxBuilds() {
     bashBuild(toybox, "android_x86") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_i686(androidApi))
+        trybuildToybox(android_i686(toyboxAndroidApi))
     }
     bashBuild(toybox, "android_x86_64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_x86_64(androidApi))
+        trybuildToybox(android_x86_64(toyboxAndroidApi))
     }
     bashBuild(toybox, "android_arm7a") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_arm7a(androidApi))
+        trybuildToybox(android_arm7a(toyboxAndroidApi))
     }
     bashBuild(toybox, "android_aarch64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_aarch64(androidApi))
+        trybuildToybox(android_aarch64(toyboxAndroidApi))
     }
 
 }
@@ -83,32 +84,32 @@ fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
     }
 }
 
-fun AndroidNativeExtension.opensslBuilds() {
+fun CrossCompileExtension.opensslBuilds() {
     bashBuild(openssl, "cur_os") {
         tryBuildOpensslAndroid(subName!!, isCrosscompile = false)
     }
 
     bashBuild(openssl, "android-x86") {
         conf(findAndroidNdk())
-        automakeConf(android_i686(androidApi))
-        tryBuildOpensslAndroid(subName!!, androidApi)
+        automakeConf(android_i686(opensslAndroidApi))
+        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
     }
 
     bashBuild(openssl, "android-x86_64") {
         conf(findAndroidNdk())
-        automakeConf(android_x86_64(androidApi))
-        tryBuildOpensslAndroid(subName!!, androidApi)
+        automakeConf(android_x86_64(opensslAndroidApi))
+        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
     }
 
     bashBuild(openssl, "android-arm") {
         conf(findAndroidNdk())
-        automakeConf(android_arm7a(androidApi))
-        tryBuildOpensslAndroid(subName!!, androidApi)
+        automakeConf(android_arm7a(opensslAndroidApi))
+        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
     }
     bashBuild(openssl, "android-arm64") {
         conf(findAndroidNdk())
-        automakeConf(android_aarch64(androidApi))
-        tryBuildOpensslAndroid(subName!!, androidApi)
+        automakeConf(android_aarch64(opensslAndroidApi))
+        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
     }
 }
 
@@ -137,7 +138,7 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCross
                 "--prefix=${opensslBuild.absolutePath}"
             )
             if (isCrosscompile) {
-                addArguments(arch, "-D__ANDROID_API__=${api}")
+                addArguments(arch, "--D__ANDROID_API__=${api}")
             }
         }
         cmd("make", "clean")

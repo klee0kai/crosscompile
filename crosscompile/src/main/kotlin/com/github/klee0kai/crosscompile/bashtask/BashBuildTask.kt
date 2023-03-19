@@ -1,6 +1,6 @@
-package com.github.klee0kai.androidnative.bashtask
+package com.github.klee0kai.crosscompile.bashtask
 
-import com.github.klee0kai.androidnative.model.TaskName
+import com.github.klee0kai.crosscompile.model.TaskName
 import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input

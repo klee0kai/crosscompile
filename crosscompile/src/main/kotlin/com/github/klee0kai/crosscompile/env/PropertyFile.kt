@@ -1,4 +1,4 @@
-package com.github.klee0kai.androidnative.env
+package com.github.klee0kai.crosscompile.env
 
 import org.gradle.api.Project
 import java.util.*

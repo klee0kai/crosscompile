@@ -1,6 +1,6 @@
-package com.github.klee0kai.androidnative.toolchain
+package com.github.klee0kai.crosscompile.toolchain
 
-import com.github.klee0kai.androidnative.bashtask.IEnvContainer
+import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 import java.io.File
 
 open class LLVMToolchain(
@@ -27,7 +27,6 @@ open class LLVMToolchain(
 
     override fun automakeConf(envContainer: IEnvContainer) = envContainer.run {
         env.appendPath("PATH", path)
-        env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
         env["CC"] = clangFile?.absolutePath
         env["CXX"] = clangcppFile?.absolutePath

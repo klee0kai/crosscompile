@@ -1,12 +1,12 @@
-package com.github.klee0kai.androidnative
+package com.github.klee0kai.crosscompile
 
-import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.env.findAndroidToolchains
-import com.github.klee0kai.androidnative.env.guessAndroidNdk
-import com.github.klee0kai.androidnative.env.guessAndroidSdk
-import com.github.klee0kai.androidnative.env.guessJdk
-import com.github.klee0kai.androidnative.model.TaskName
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
+import com.github.klee0kai.crosscompile.env.findAndroidToolchains
+import com.github.klee0kai.crosscompile.env.guessAndroidNdk
+import com.github.klee0kai.crosscompile.env.guessAndroidSdk
+import com.github.klee0kai.crosscompile.env.guessJdk
+import com.github.klee0kai.crosscompile.model.TaskName
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,7 +31,7 @@ class CrossCompilePlugin : Plugin<Project> {
         val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
         val libGroups = mutableMapOf<String, MutableList<BashBuildTask>>()
 
-        val bashBuild: BashBuildLambda = { name, subName, taskBlock ->
+        val bashBuild: com.github.klee0kai.crosscompile.BashBuildLambda = { name, subName, taskBlock ->
 
             val taskName = genTaskNameFor(if (subName != null) "${name}-${subName}" else name)
             val task = tasks.register(taskName, BashBuildTask::class.java, TaskName(name, subName)).get()
@@ -49,7 +49,7 @@ class CrossCompilePlugin : Plugin<Project> {
             task
         }
 
-        extensions.create<AndroidNativeExtension>("crosscompile", bashBuild, toolchains)
+        extensions.create<com.github.klee0kai.crosscompile.CrossCompileExtension>("crosscompile", bashBuild, toolchains)
 
         afterEvaluate {
             registerToolchainsTask(toolchains)

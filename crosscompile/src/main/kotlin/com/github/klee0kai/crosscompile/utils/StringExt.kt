@@ -1,4 +1,4 @@
-package com.github.klee0kai.androidnative.utils
+package com.github.klee0kai.crosscompile.utils
 
 fun String.insertTo(index: Int, txt: String): String {
     val start = substring(0, index)

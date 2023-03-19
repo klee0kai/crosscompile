@@ -1,4 +1,4 @@
-package com.github.klee0kai.androidnative.utils
+package com.github.klee0kai.crosscompile.utils
 
 import java.io.File
 import java.nio.file.Path

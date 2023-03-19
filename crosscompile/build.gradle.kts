@@ -10,9 +10,9 @@ java {
 
 
 gradlePlugin {
-    plugins.register("androidnative") {
-        id = "com.github.klee0kai.androidnative"
-        implementationClass = "com.github.klee0kai.androidnative.CrossCompilePlugin"
+    plugins.register("crosscompile") {
+        id = "com.github.klee0kai.crosscompile"
+        implementationClass = "com.github.klee0kai.crosscompile.CrossCompilePlugin"
     }
 }
 

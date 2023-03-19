@@ -1,13 +1,13 @@
-package com.github.klee0kai.androidnative
+package com.github.klee0kai.crosscompile
 
-import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
 import javax.inject.Inject
 
 
 typealias BashBuildLambda = (name: String, subName: String?, block: BashBuildTask.() -> Unit) -> BashBuildTask
 
-open class AndroidNativeExtension @Inject constructor(
+open class CrossCompileExtension @Inject constructor(
     private val __bashBuild: BashBuildLambda,
     val toolchains: List<IToolchain>,
 ) {
@@ -23,4 +23,4 @@ open class AndroidNativeExtension @Inject constructor(
 }
 
 
-fun AndroidNativeExtension.toolchain(name: String) = toolchains.find { it.name == name }
+fun CrossCompileExtension.toolchain(name: String) = toolchains.find { it.name == name }

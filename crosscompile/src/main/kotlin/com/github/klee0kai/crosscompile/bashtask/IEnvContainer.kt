@@ -1,7 +1,7 @@
-package com.github.klee0kai.androidnative.bashtask
+package com.github.klee0kai.crosscompile.bashtask
 
-import com.github.klee0kai.androidnative.toolchain.AndroidNdk
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.toolchain.AndroidNdk
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
 interface IEnvContainer : IExec {
 

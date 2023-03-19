@@ -1,9 +1,9 @@
-package com.github.klee0kai.androidnative.env
+package com.github.klee0kai.crosscompile.env
 
-import com.github.klee0kai.androidnative.toolchain.LLVMToolchain
-import com.github.klee0kai.androidnative.utils.pathPlus
-import com.github.klee0kai.androidnative.utils.removeDoubles
-import com.github.klee0kai.androidnative.utils.walkStarMasked
+import com.github.klee0kai.crosscompile.toolchain.LLVMToolchain
+import com.github.klee0kai.crosscompile.utils.pathPlus
+import com.github.klee0kai.crosscompile.utils.removeDoubles
+import com.github.klee0kai.crosscompile.utils.walkStarMasked
 import org.gradle.api.Project
 import java.io.File
 import java.nio.file.Paths
