@@ -1,12 +1,12 @@
 package com.github.klee0kai.androidnative
 
 import com.github.klee0kai.androidnative.bashtask.BashBuildTask
+import com.github.klee0kai.androidnative.env.findAndroidToolchains
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
 import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.env.guessJdk
 import com.github.klee0kai.androidnative.model.TaskName
 import com.github.klee0kai.androidnative.toolchain.IToolchain
-import com.github.klee0kai.androidnative.toolchain.findAndroidToolchains
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project

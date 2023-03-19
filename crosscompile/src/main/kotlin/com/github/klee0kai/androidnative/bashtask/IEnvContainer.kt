@@ -1,5 +1,6 @@
 package com.github.klee0kai.androidnative.bashtask
 
+import com.github.klee0kai.androidnative.toolchain.AndroidNdk
 import com.github.klee0kai.androidnative.toolchain.IToolchain
 
 interface IEnvContainer : IExec {
@@ -20,6 +21,9 @@ interface IEnvContainer : IExec {
         toolchain.automakeConf(this)
     }
 
+    fun IEnvContainer.conf(ndk: AndroidNdk) {
+        ndk.conf(this)
+    }
 
     fun cmd(cmd: Any, block: CmdBuilder.() -> Unit) {
         val cmdBuilder = CmdBuilder()
