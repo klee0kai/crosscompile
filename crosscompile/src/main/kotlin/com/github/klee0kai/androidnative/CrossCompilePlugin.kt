@@ -4,13 +4,12 @@ import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 import com.github.klee0kai.androidnative.env.guessAndroidNdk
 import com.github.klee0kai.androidnative.env.guessAndroidSdk
 import com.github.klee0kai.androidnative.env.guessJdk
+import com.github.klee0kai.androidnative.model.TaskName
 import com.github.klee0kai.androidnative.toolchain.IToolchain
-import com.github.klee0kai.androidnative.toolchain.NativeToolchain
 import com.github.klee0kai.androidnative.toolchain.findAndroidToolchains
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.plugins.HelpTasksPlugin.HELP_GROUP
 import org.gradle.kotlin.dsl.create
 import org.gradle.language.base.plugins.LifecycleBasePlugin
@@ -32,11 +31,10 @@ class CrossCompilePlugin : Plugin<Project> {
         val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
         val libGroups = mutableMapOf<String, MutableList<BashBuildTask>>()
 
-        val bashBuild: BashBuildLambda = { name, t, taskBlock ->
-            val toolchain = t ?: NativeToolchain
+        val bashBuild: BashBuildLambda = { name, subName, taskBlock ->
 
-            val taskName = genTaskNameFor("${name}-${toolchain.name}")
-            val task = tasks.register(taskName, BashBuildTask::class.java, name, toolchain).get()
+            val taskName = genTaskNameFor(if (subName != null) "${name}-${subName}" else name)
+            val task = tasks.register(taskName, BashBuildTask::class.java, TaskName(name, subName)).get()
                 .apply {
                     group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
@@ -65,12 +63,15 @@ class CrossCompilePlugin : Plugin<Project> {
 
     private fun BashBuildTask.fillDescIfNull() {
         if (description.isNullOrBlank()) {
-            description = "Build $libName for ${toolchain.name}"
+            description = "Build $name"
         }
     }
 
     private fun Project.registerLibAssembleTask(libArchTasks: List<BashBuildTask>) {
-        val name = libArchTasks.first().libName
+        val name = libArchTasks.first().groupName
+
+        if (tasks.findByName(name) != null)
+            return
 
         tasks.register(name, DefaultTask::class.java) {
             val forAllArch = if (libArchTasks.size > 1) "for all arch" else ""

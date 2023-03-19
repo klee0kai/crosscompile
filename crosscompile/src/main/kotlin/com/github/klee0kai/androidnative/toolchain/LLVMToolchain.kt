@@ -22,24 +22,7 @@ open class LLVMToolchain(
     val dwpFile: File?,
 ) : IToolchain {
 
-    override fun applyBinAppAlias(envContainer: IEnvContainer) = envContainer.run {
-        runWrapper.alias("clang", clangFile?.absolutePath)
-        runWrapper.alias("clang++", clangcppFile?.absolutePath)
-        runWrapper.alias("addr2line", addr2line?.absolutePath)
-        runWrapper.alias("ar", arFile?.absolutePath)
-        runWrapper.alias("as", asFile?.absolutePath)
-        runWrapper.alias("ld", ldFile?.absolutePath)
-        runWrapper.alias("nm", nmFile?.absolutePath)
-        runWrapper.alias("objcopy", objcopyFile?.absolutePath)
-        runWrapper.alias("objdump", objdumpFile?.absolutePath)
-        runWrapper.alias("runlib", runlibFile?.absolutePath)
-        runWrapper.alias("readelf", readelfFile?.absolutePath)
-        runWrapper.alias("size", sizeFile?.absolutePath)
-        runWrapper.alias("strings", stringsFile?.absolutePath)
-        runWrapper.alias("dwp", dwpFile?.absolutePath)
-    }
-
-    override fun applyAutoToolConf(container: IEnvContainer) = container.run {
+    override fun automakeConf(envContainer: IEnvContainer) = envContainer.run {
         env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
         env["CC"] = clangFile?.absolutePath

@@ -7,9 +7,11 @@ interface IToolchain {
     val name: String
     val path: String?
 
-    fun applyBinAppAlias(envContainer: IEnvContainer) = Unit
 
-    fun applyAutoToolConf(envContainer: IEnvContainer) = Unit
+    /**
+     *  Env for [automake](https://www.gnu.org/software/automake/)
+     */
+    fun automakeConf(envContainer: IEnvContainer) = Unit
 
 
 }

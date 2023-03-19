@@ -28,9 +28,9 @@ class AndroidLLVMToolchain(
 ) {
 
 
-    override fun applyAutoToolConf(container: IEnvContainer) {
-        super.applyAutoToolConf(container)
-        container.run {
+    override fun automakeConf(envContainer: IEnvContainer) {
+        super.automakeConf(envContainer)
+        envContainer.run {
             env["ANDROID_SDK"] = sdkPath
             env["ANDROID_SDK_ROOT"] = sdkPath
 

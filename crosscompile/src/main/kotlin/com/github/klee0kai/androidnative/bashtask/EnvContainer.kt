@@ -1,13 +1,8 @@
 package com.github.klee0kai.androidnative.bashtask
 
-import com.github.klee0kai.androidnative.script.IRunWrapper
-import com.github.klee0kai.androidnative.script.RunOnLinuxWrapper
-import com.github.klee0kai.androidnative.toolchain.IToolchain
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
-import org.gradle.process.ExecResult
 import org.gradle.process.internal.DefaultExecSpec
-import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
@@ -19,13 +14,10 @@ class EnvContainer(
     val project: Project,
     val objectFactory: ObjectFactory,
     val execAction: ExecActionFactory,
-    override val toolchain: IToolchain,
 ) : IEnvContainer {
 
     override val env: MutableMap<String, Any?>
         get() = execSpec.environment
-
-    override val runWrapper: IRunWrapper = RunOnLinuxWrapper(name)
 
     override var ignoreErr: Boolean = false
 
@@ -45,7 +37,6 @@ class EnvContainer(
         env.project,
         env.objectFactory,
         env.execAction,
-        env.toolchain
     ) {
         ignoreErr = env.ignoreErr
         env.execSpec.copyTo(execSpec)
@@ -54,17 +45,17 @@ class EnvContainer(
     override fun cmd(vararg cmd: Any) {
         exec.add(IExec {
             val errStream = ByteArrayOutputStream()
-            var result: ExecResult? = null
             try {
                 val execAction = execAction.newExecAction()
                 execSpec.copyTo(execAction)
-                execAction.runWrapped(*cmd)
+
+                execAction.commandLine(*cmd)
 
                 execAction.isIgnoreExitValue = true;
                 execAction.errorOutput = errStream;
 
 
-                result = execAction.execute()
+                val result = execAction.execute()
 
                 if (result.exitValue != 0) {
                     throw ExecException("Cmd ${cmd.joinToString(" ")} finished with exit code ${result.exitValue}")
@@ -76,33 +67,25 @@ class EnvContainer(
                         "can't run ${cmd.joinToString(" ")}\n ${e.causedMessage()} $errStreamText",
                         e
                     )
+                } else {
+                    print(String(errStream.toByteArray()))
                 }
             }
         })
     }
 
-    override fun env(name: String?, block: IEnvContainer.() -> Unit) {
+    override fun container(name: String?, block: IEnvContainer.() -> Unit) {
         val newName = name ?: "${this.name}_ch${childEnvIndex++}"
         exec.add(EnvContainer(newName, this).also(block))
     }
 
     override fun exec() {
-        runWrapper.gen(project)
         exec.forEach { it.exec() }
     }
 
 
     private fun Throwable.causedMessage(): String {
-        return "$message \n caused: ${cause?.causedMessage()}"
-    }
-
-    private fun ExecAction.runWrapped(vararg cmd: Any) {
-        if (runWrapper.runWrapperPath?.exists() == true) {
-            val args = listOf("bash", runWrapper.runWrapperPath?.absolutePath) + cmd
-            commandLine(*args.toTypedArray())
-        } else {
-            commandLine(*cmd)
-        }
+        return "$message \n caused: ${cause?.causedMessage() ?: ""}"
     }
 
 }
