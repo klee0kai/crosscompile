@@ -1,7 +1,6 @@
-package com.github.klee0kai.androidnative.toolchain
+package com.github.klee0kai.androidnative.env
 
-import com.github.klee0kai.androidnative.env.guessAndroidNdk
-import com.github.klee0kai.androidnative.env.guessAndroidSdk
+import com.github.klee0kai.androidnative.toolchain.LLVMToolchain
 import com.github.klee0kai.androidnative.utils.pathPlus
 import com.github.klee0kai.androidnative.utils.removeDoubles
 import com.github.klee0kai.androidnative.utils.walkStarMasked
@@ -37,11 +36,12 @@ fun Project.findAndroidToolchains(
             }
 
             toolchainPrefixes.map {
-                AndroidLLVMToolchain(
-                    sdkPath = androidSdk,
-                    ndkPath = androidNdk,
+                LLVMToolchain(
                     name = it.name,
-                    path = binFolder.absolutePath,
+                    path = binFolder.parentFile.absolutePath,
+                    sysroot = File(binFolder.parentFile, "sysroot"),
+                    includeFolders = listOf(),
+                    libs = listOf(),
                     clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
                     clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
                     addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),

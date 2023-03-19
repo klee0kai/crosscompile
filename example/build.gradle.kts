@@ -1,9 +1,7 @@
-import com.github.klee0kai.androidnative.android_aarch64
-import com.github.klee0kai.androidnative.android_arm7a
-import com.github.klee0kai.androidnative.android_i686
-import com.github.klee0kai.androidnative.android_x86_64
+import com.github.klee0kai.androidnative.*
 import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.bashtask.configAll
+import com.github.klee0kai.androidnative.env.findAndroidNdk
+import com.github.klee0kai.androidnative.toolchain.IToolchain
 
 plugins {
     id("com.github.klee0kai.androidnative")
@@ -14,91 +12,137 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
-
-
+val androidApi = 30
 
 crosscompile {
 
+    toyboxBuilds()
 
+    opensslBuilds()
+
+}
+
+fun AndroidNativeExtension.toyboxBuilds() {
     val toyboxSrcTask = bashBuild("${toybox}_src") {
         description = "Download $toybox source codes"
         doFirst { toyboxSrc.parentFile.mkdirs() }
 
         ignoreErr = true
-        cmd("git clone --depth 1 --branch 0.8.9 git@github.com:landley/toybox.git -o origin ${toyboxSrc.absolutePath}")
+        cmd(
+            "git",
+            "clone",
+            "--depth", "1",
+            "--branch", "android-13.0.0_r1",
+            "https://android.googlesource.com/platform/external/toybox",
+            "-o", "origin", toyboxSrc.absolutePath
+        )
     }
 
-    bashBuild(toybox) {
+    bashBuild(toybox, "cur_os") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("cur_os")
+        trybuildToybox(null)
     }
-    bashBuild(toybox, android_arm7a(30)) {
+    bashBuild(toybox, "android_x86") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("android_arm7a")
+        conf(findAndroidNdk())
+        trybuildToybox(android_i686(androidApi))
     }
-    bashBuild(toybox, android_aarch64(30)) {
+    bashBuild(toybox, "android_x86_64") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("android_aarch64")
+        conf(findAndroidNdk())
+        trybuildToybox(android_x86_64(androidApi))
     }
-
-    bashBuild(openssl) {
-        tryBuildOpensslAndroid()
+    bashBuild(toybox, "android_arm7a") {
+        dependsOn(toyboxSrcTask)
+        conf(findAndroidNdk())
+        trybuildToybox(android_arm7a(androidApi))
     }
-
-    bashBuild(openssl, android_i686(21)) {
-        tryBuildOpensslAndroid("android-x86", 21)
-    }
-
-    bashBuild(openssl, android_x86_64(21)) {
-        tryBuildOpensslAndroid("android-x86_64", 21)
-    }
-
-    bashBuild(openssl, android_arm7a(21)) {
-        tryBuildOpensslAndroid("android-arm", 21)
-    }
-    bashBuild(openssl, android_aarch64(21)) {
-        tryBuildOpensslAndroid("android-arm64", 21)
+    bashBuild(toybox, "android_aarch64") {
+        dependsOn(toyboxSrcTask)
+        conf(findAndroidNdk())
+        trybuildToybox(android_aarch64(androidApi))
     }
 
 }
 
-fun BashBuildTask.trybuildToybox(arch: String) = env {
-    val toyboxBuild = File(project.buildDir, "libs/toybox-${arch}")
+fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
+    toolchain?.automakeConf(this)
+
+    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchain?.name ?: "cur_os"}")
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
-    configAll()
-    cmd("make clean")
+    cmd("make", "clean")
     cmd("./configure")
     cmd("make")
 
-    env {
+    container {
         ignoreErr = true
-        cmd("cp toybox $toyboxBuild")
-        cmd("file toybox")
+        cmd("cp", "toybox", toyboxBuild)
+        cmd("file", "toybox")
     }
 }
 
-
-fun BashBuildTask.tryBuildOpensslAndroid(arch: String? = null, api: Int? = null) {
-    val opensslBuild = File(project.buildDir, "libs/openssl-${arch ?: "cur"}/build")
-    doFirst { opensslBuild.parentFile.mkdirs() }
-    env {
-        ignoreErr = true
-        cmd("git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin ${opensslSrc.absolutePath}")
+fun AndroidNativeExtension.opensslBuilds() {
+    bashBuild(openssl, "cur_os") {
+        tryBuildOpensslAndroid(subName!!, isCrosscompile = false)
     }
-    env {
+
+    bashBuild(openssl, "android-x86") {
+        conf(findAndroidNdk())
+        automakeConf(android_i686(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
+    }
+
+    bashBuild(openssl, "android-x86_64") {
+        conf(findAndroidNdk())
+        automakeConf(android_x86_64(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
+    }
+
+    bashBuild(openssl, "android-arm") {
+        conf(findAndroidNdk())
+        automakeConf(android_arm7a(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
+    }
+    bashBuild(openssl, "android-arm64") {
+        conf(findAndroidNdk())
+        automakeConf(android_aarch64(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
+    }
+}
+
+fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCrosscompile: Boolean = true) {
+    val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
+    doFirst { opensslBuild.parentFile.mkdirs() }
+    container {
+        ignoreErr = true
+        cmd(
+            "git",
+            "clone",
+            "--depth", "1",
+            "--branch", "OpenSSL_1_1_1-stable",
+            "https://github.com/openssl/openssl.git",
+            "-o", "origin", opensslSrc.absolutePath
+        )
+    }
+    container {
         ignoreErr = false
         workFolder = opensslSrc.absolutePath
 
-        configAll()
-        val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
-        val confArgs = "no-filenames no-afalgeng no-asm threads  $additionalArgs --prefix=${opensslBuild.absolutePath}"
-        val configScript = if (arch != null) "./Configure" else "./config"
-        cmd("$configScript $confArgs")
-        cmd("make clean")
-        cmd("make -j8")
-        cmd("make install -j8")
+
+        cmd(if (isCrosscompile) "./Configure" else "./config") {
+            addArguments(
+                "no-filenames", "no-afalgeng", "no-asm", "threads",
+                "--prefix=${opensslBuild.absolutePath}"
+            )
+            if (isCrosscompile) {
+                addArguments(arch, "-D__ANDROID_API__=${api}")
+            }
+        }
+        cmd("make", "clean")
+        cmd("make", "-j8")
+        cmd("make", "install", "-j8")
     }
 
 

@@ -6,6 +6,9 @@ import java.io.File
 open class LLVMToolchain(
     override val name: String,
     override val path: String,
+    val sysroot: File,
+    val includeFolders: List<File>,
+    val libs: List<File>,
     val clangFile: File?,
     val clangcppFile: File?,
     val addr2line: File?,
@@ -22,24 +25,8 @@ open class LLVMToolchain(
     val dwpFile: File?,
 ) : IToolchain {
 
-    override fun applyBinAppAlias(envContainer: IEnvContainer) = envContainer.run {
-        runWrapper.alias("clang", clangFile?.absolutePath)
-        runWrapper.alias("clang++", clangcppFile?.absolutePath)
-        runWrapper.alias("addr2line", addr2line?.absolutePath)
-        runWrapper.alias("ar", arFile?.absolutePath)
-        runWrapper.alias("as", asFile?.absolutePath)
-        runWrapper.alias("ld", ldFile?.absolutePath)
-        runWrapper.alias("nm", nmFile?.absolutePath)
-        runWrapper.alias("objcopy", objcopyFile?.absolutePath)
-        runWrapper.alias("objdump", objdumpFile?.absolutePath)
-        runWrapper.alias("runlib", runlibFile?.absolutePath)
-        runWrapper.alias("readelf", readelfFile?.absolutePath)
-        runWrapper.alias("size", sizeFile?.absolutePath)
-        runWrapper.alias("strings", stringsFile?.absolutePath)
-        runWrapper.alias("dwp", dwpFile?.absolutePath)
-    }
-
-    override fun applyAutoToolConf(container: IEnvContainer) = container.run {
+    override fun automakeConf(envContainer: IEnvContainer) = envContainer.run {
+        env.appendPath("PATH", path)
         env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
         env["CC"] = clangFile?.absolutePath
@@ -51,6 +38,13 @@ open class LLVMToolchain(
         env["NM"] = nmFile?.absolutePath
         env["OBJCOPY"] = objcopyFile?.absolutePath
 
+        env.appendArgs("CFLAGS", "--sysroot=${sysroot.absolutePath}")
+        env.appendArgs("CPPFLAGS", "--sysroot=${sysroot.absolutePath}")
+        env.appendArgs("CXXFLAGS", "--sysroot=${sysroot.absolutePath}")
+
+        env.appendArgs("LDFLAGS", "")
+        env.appendArgs("OBJCFLAGS", "")
+        env.appendArgs("OBJCXXFLAGS", "")
     }
 
 
@@ -59,3 +53,10 @@ open class LLVMToolchain(
     }
 }
 
+private fun MutableMap<String, Any?>.appendPath(key: String, value: Any) {
+    this[key] = "${value}:${getOrDefault(key, "")}"
+}
+
+private fun MutableMap<String, Any?>.appendArgs(key: String, value: Any) {
+    this[key] = "${getOrDefault(key, "")} $value"
+}

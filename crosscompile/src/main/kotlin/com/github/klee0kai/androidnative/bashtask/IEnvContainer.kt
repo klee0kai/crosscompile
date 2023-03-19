@@ -1,15 +1,11 @@
 package com.github.klee0kai.androidnative.bashtask
 
-import com.github.klee0kai.androidnative.script.IRunWrapper
+import com.github.klee0kai.androidnative.toolchain.AndroidNdk
 import com.github.klee0kai.androidnative.toolchain.IToolchain
 
 interface IEnvContainer : IExec {
 
-    val toolchain: IToolchain
-
     val env: MutableMap<String, Any?>
-
-    val runWrapper: IRunWrapper
 
     var workFolder: String
 
@@ -17,18 +13,28 @@ interface IEnvContainer : IExec {
 
     fun cmd(vararg cmd: Any)
 
-    fun env(name: String? = null, block: IEnvContainer.() -> Unit)
+    fun container(name: String? = null, block: IEnvContainer.() -> Unit)
+
+
+    // ------------ extensions ------------
+    fun IEnvContainer.automakeConf(toolchain: IToolchain) {
+        toolchain.automakeConf(this)
+    }
+
+    fun IEnvContainer.conf(ndk: AndroidNdk) {
+        ndk.conf(this)
+    }
+
+    fun cmd(cmd: Any, block: CmdBuilder.() -> Unit) {
+        val cmdBuilder = CmdBuilder()
+        block.invoke(cmdBuilder)
+        cmd(cmd, *cmdBuilder.arguments.toTypedArray())
+    }
 
 
 }
 
-fun IEnvContainer.configAll() {
-    configBinAlias()
-    configAutoTool()
-}
 
-fun IEnvContainer.configBinAlias() =
-    toolchain.applyBinAppAlias(this)
 
-fun IEnvContainer.configAutoTool() =
-    toolchain.applyAutoToolConf(this)
+
+
