@@ -1,6 +1,7 @@
 import com.github.klee0kai.androidnative.*
 import com.github.klee0kai.androidnative.bashtask.BashBuildTask
 import com.github.klee0kai.androidnative.env.findAndroidNdk
+import com.github.klee0kai.androidnative.toolchain.IToolchain
 
 plugins {
     id("com.github.klee0kai.androidnative")
@@ -11,7 +12,7 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
-val androidApi = 21
+val androidApi = 30
 
 crosscompile {
 
@@ -31,33 +32,43 @@ fun AndroidNativeExtension.toyboxBuilds() {
             "git",
             "clone",
             "--depth", "1",
-            "--branch", "0.8.9",
-            "git@github.com:landley/toybox.git",
+            "--branch", "android-13.0.0_r1",
+            "https://android.googlesource.com/platform/external/toybox",
             "-o", "origin", toyboxSrc.absolutePath
         )
     }
 
     bashBuild(toybox, "cur_os") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox(subName!!)
+        trybuildToybox(null)
+    }
+    bashBuild(toybox, "android_x86") {
+        dependsOn(toyboxSrcTask)
+        conf(findAndroidNdk())
+        trybuildToybox(android_i686(androidApi))
+    }
+    bashBuild(toybox, "android_x86_64") {
+        dependsOn(toyboxSrcTask)
+        conf(findAndroidNdk())
+        trybuildToybox(android_x86_64(androidApi))
     }
     bashBuild(toybox, "android_arm7a") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        automakeConf(android_arm7a(androidApi))
-        trybuildToybox(subName!!)
+        trybuildToybox(android_arm7a(androidApi))
     }
     bashBuild(toybox, "android_aarch64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        automakeConf(android_aarch64(androidApi))
-        trybuildToybox(subName!!)
+        trybuildToybox(android_aarch64(androidApi))
     }
 
 }
 
-fun BashBuildTask.trybuildToybox(arch: String) = container {
-    val toyboxBuild = File(project.buildDir, "libs/toybox-${arch}")
+fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
+    toolchain?.automakeConf(this)
+
+    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchain?.name ?: "cur_os"}")
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
