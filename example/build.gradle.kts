@@ -12,8 +12,7 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
-val toyboxAndroidApi = 30
-val opensslAndroidApi = 21
+val androidApi = 30
 
 crosscompile {
 
@@ -41,38 +40,40 @@ fun CrossCompileExtension.toyboxBuilds() {
 
     bashBuild(toybox, "cur_os") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox(null)
+        buildToybox(null)
     }
     bashBuild(toybox, "android_x86") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_i686(toyboxAndroidApi))
+        buildToybox(android_i686(androidApi))
     }
     bashBuild(toybox, "android_x86_64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_x86_64(toyboxAndroidApi))
+        buildToybox(android_x86_64(androidApi))
     }
     bashBuild(toybox, "android_arm7a") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_arm7a(toyboxAndroidApi))
+        buildToybox(android_arm7a(androidApi))
     }
     bashBuild(toybox, "android_aarch64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_aarch64(toyboxAndroidApi))
+        buildToybox(android_aarch64(androidApi))
     }
 
 }
 
-fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
+fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
     toolchain?.automakeConf(this)
 
-    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchain?.name ?: "cur_os"}")
+    val toolchainName = toolchain?.name ?: "cur_os"
+    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchainName}")
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
+    createEnvFile(toyboxBuild + "toybox_${toolchainName}.sh")
     cmd("make", "clean")
     cmd("./configure")
     cmd("make")
@@ -91,29 +92,30 @@ fun CrossCompileExtension.opensslBuilds() {
 
     bashBuild(openssl, "android-x86") {
         conf(findAndroidNdk())
-        automakeConf(android_i686(opensslAndroidApi))
-        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
+        automakeConf(android_i686(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
     }
 
     bashBuild(openssl, "android-x86_64") {
         conf(findAndroidNdk())
-        automakeConf(android_x86_64(opensslAndroidApi))
-        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
+        automakeConf(android_x86_64(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
     }
 
     bashBuild(openssl, "android-arm") {
         conf(findAndroidNdk())
-        automakeConf(android_arm7a(opensslAndroidApi))
-        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
+        automakeConf(android_arm7a(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
     }
     bashBuild(openssl, "android-arm64") {
         conf(findAndroidNdk())
-        automakeConf(android_aarch64(opensslAndroidApi))
-        tryBuildOpensslAndroid(subName!!, opensslAndroidApi)
+        automakeConf(android_aarch64(androidApi))
+        tryBuildOpensslAndroid(subName!!, androidApi)
     }
 }
 
 fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCrosscompile: Boolean = true) {
+
     val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
     doFirst { opensslBuild.parentFile.mkdirs() }
     container {
@@ -128,19 +130,22 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCross
         )
     }
     container {
-        ignoreErr = false
         workFolder = opensslSrc.absolutePath
+        installFolder = opensslBuild.absolutePath
 
-
+        createEnvFile(opensslBuild + "openssl_${name}.sh")
         cmd(if (isCrosscompile) "./Configure" else "./config") {
             addArguments(
                 "no-filenames", "no-afalgeng", "no-asm", "threads",
-                "--prefix=${opensslBuild.absolutePath}"
             )
             if (isCrosscompile) {
-                addArguments(arch, "--D__ANDROID_API__=${api}")
+                addArguments(arch, "-D__ANDROID_API__=${api}")
             }
         }
+    }
+
+    container {
+        workFolder = opensslSrc.absolutePath
         cmd("make", "clean")
         cmd("make", "-j8")
         cmd("make", "install", "-j8")
@@ -148,3 +153,5 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCross
 
 
 }
+
+operator fun File.plus(s: String): File = File(absolutePath, s)

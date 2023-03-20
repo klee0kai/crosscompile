@@ -27,6 +27,15 @@ class EnvContainer(
             execSpec.workingDir = File(value)
         }
 
+    override var installFolder: String?
+        get() = (env["DESTDIR"] ?: env["INSTALL_PREFIX"])?.toString()
+        set(value) {
+            env["DESTDIR"] = value
+            env["INSTALL_PREFIX"] = value
+            execSpec.args("--prefix=${value}")
+        }
+
+
     private val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
     private val exec = mutableListOf<IExec>()
 
@@ -45,32 +54,52 @@ class EnvContainer(
     override fun cmd(vararg cmd: Any) {
         exec.add(IExec {
             val errStream = ByteArrayOutputStream()
-            try {
-                val execAction = execAction.newExecAction()
-                execSpec.copyTo(execAction)
+            val execAction = execAction.newExecAction()
+            execSpec.copyTo(execAction)
 
-                execAction.commandLine(*cmd)
+            val fullCmd = arrayOf(*cmd, *execSpec.args.toTypedArray())
+            try {
+                execAction.commandLine(*fullCmd)
 
                 execAction.isIgnoreExitValue = true;
                 execAction.errorOutput = errStream;
 
+                println(fullCmd.joinToString(" "))
 
                 val result = execAction.execute()
 
                 if (result.exitValue != 0) {
-                    throw ExecException("Cmd ${cmd.joinToString(" ")} finished with exit code ${result.exitValue}")
+                    throw ExecException("Cmd ${fullCmd.joinToString(" ")} finished with exit code ${result.exitValue}")
                 }
             } catch (e: Exception) {
                 if (!ignoreErr) {
                     val errStreamText = String(errStream.toByteArray())
                     throw IOException(
-                        "can't run ${cmd.joinToString(" ")}\n ${e.causedMessage()} $errStreamText",
-                        e
+                        "can't run ${fullCmd.joinToString(" ")}\n ${e.causedMessage()} $errStreamText", e
                     )
                 } else {
                     print(String(errStream.toByteArray()))
                 }
             }
+        })
+    }
+
+    override fun createEnvFile(file: File) {
+        exec.add(IExec {
+            val sh = buildString {
+                append("#!/bin/sh\n\n")
+
+                env.keys.forEach { key ->
+                    val value = env.getOrDefault(key, null)?.toString()
+                    if (!value.isNullOrBlank()) append("${key}=\"${value}\"\n")
+                }
+
+                append("\n\n")
+                append("$@ ${execSpec.args.joinToString(" ")}")
+            }
+
+            file.parentFile.mkdirs()
+            file.writeText(sh)
         })
     }
 

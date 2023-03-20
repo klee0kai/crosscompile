@@ -2,7 +2,7 @@ package com.github.klee0kai.crosscompile.toolchain
 
 import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 
-class AndroidNdk(
+class AndroidNdkToolchain(
     val sdkPath: String?,
     val ndkPath: String?,
 ) {

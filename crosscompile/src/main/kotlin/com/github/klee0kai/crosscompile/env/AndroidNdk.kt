@@ -1,7 +1,7 @@
 package com.github.klee0kai.crosscompile.env
 
 import com.android.build.gradle.internal.SdkLocator
-import com.github.klee0kai.crosscompile.toolchain.AndroidNdk
+import com.github.klee0kai.crosscompile.toolchain.AndroidNdkToolchain
 import com.github.klee0kai.crosscompile.utils.EmptyIssueReporter
 import com.github.klee0kai.crosscompile.utils.pathPlus
 import org.gradle.api.Project
@@ -10,7 +10,7 @@ import java.io.File
 fun Project.findAndroidNdk(
     androidSdk: String? = guessAndroidSdk(),
     androidNdk: String? = guessAndroidNdk(androidSdk),
-) = AndroidNdk(
+) = AndroidNdkToolchain(
     sdkPath = androidSdk,
     ndkPath = androidNdk,
 )

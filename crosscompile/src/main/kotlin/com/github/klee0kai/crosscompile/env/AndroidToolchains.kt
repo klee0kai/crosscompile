@@ -8,10 +8,44 @@ import org.gradle.api.Project
 import java.io.File
 import java.nio.file.Paths
 
-private data class ToolchainPrefixes(
-    val name: String,
-    val prefixes: List<String>,
+private val prebuildArchMap = mapOf(
+    "armv7a" to "arm",
+    "aarch64" to "arm64",
+    "i686" to "x86",
+    "x64_86" to "x64_86",
 )
+
+private data class ToolchainNaming(
+    val name: String,
+
+    /**
+     * available prefixs for bin apps. for example:
+     *
+     *  clang -> armv7a-linux-androideabi16-clang - prefix is  armv7a-linux-androideabi16-
+     */
+    val prefixes: List<String>,
+) {
+    val splitted
+        get() = name.split("-")
+
+    val targetArch: String?
+        get() = splitted.getOrNull(0)
+
+    val host: String?
+        get() = splitted.getOrNull(1)
+
+    val target: String?
+        get() = splitted.getOrNull(2)
+
+
+    val targetAbi: Int?
+        get() = target
+            ?.indexOfLast { !it.isDigit() }
+            ?.let { index ->
+                target?.substring(index + 1)?.toIntOrNull()
+            }
+
+}
 
 
 fun Project.findAndroidToolchains(
@@ -26,8 +60,8 @@ fun Project.findAndroidToolchains(
 
             val allAvailableToolchainNames = binFolder.guessToolchainNamesFromBinFolder()
 
-            val toolchainPrefixes = allAvailableToolchainNames.map { name ->
-                ToolchainPrefixes(
+            val toolchainNames = allAvailableToolchainNames.map { name ->
+                ToolchainNaming(
                     name = name,
                     prefixes = (listOf("$name-")
                             + allAvailableToolchainNames.filter { name.startsWith(it) }.map { "$it-" }
@@ -35,27 +69,38 @@ fun Project.findAndroidToolchains(
                 )
             }
 
-            toolchainPrefixes.map {
+            toolchainNames.map { tlName ->
+                val prebuildLibsArch = prebuildArchMap.getOrDefault(tlName.targetArch, tlName.targetArch)
+                val androidAbi = tlName.targetAbi?.let { "android-${it}" } ?: "*"
+                val prebuildLibsFolders =
+                    Paths.get(androidNdk.pathPlus("platforms/${androidAbi}/arch-${prebuildLibsArch}"))
+                        .walkStarMasked().toList()
+
+                val inclFolders = listOf(File(binFolder.parentFile, "sysroot/usr/include"))
+                val inclArchFolders =
+                    Paths.get(androidNdk.pathPlus("toolchains/llvm/prebuilt/*/sysroot/usr/include/${tlName.targetArch}-${tlName.host}-android/"))
+                        .walkStarMasked().toList()
+
                 LLVMToolchain(
-                    name = it.name,
-                    path = binFolder.parentFile.absolutePath,
-                    sysroot = File(binFolder.parentFile, "sysroot"),
-                    includeFolders = listOf(),
-                    libs = listOf(),
-                    clangFile = binFolder.findFirstFile(it.prefixes, "clang"),
-                    clangcppFile = binFolder.findFirstFile(it.prefixes, "clang++"),
-                    addr2line = binFolder.findFirstFile(it.prefixes, "addr2line"),
-                    arFile = binFolder.findFirstFile(it.prefixes, "ar"),
-                    asFile = binFolder.findFirstFile(it.prefixes, "as"),
-                    ldFile = binFolder.findFirstFile(it.prefixes, "ld"),
-                    nmFile = binFolder.findFirstFile(it.prefixes, "nm"),
-                    objcopyFile = binFolder.findFirstFile(it.prefixes, "objcopy"),
-                    objdumpFile = binFolder.findFirstFile(it.prefixes, "objdump"),
-                    runlibFile = binFolder.findFirstFile(it.prefixes, "runlib"),
-                    readelfFile = binFolder.findFirstFile(it.prefixes, "readelf"),
-                    sizeFile = binFolder.findFirstFile(it.prefixes, "size"),
-                    stringsFile = binFolder.findFirstFile(it.prefixes, "strings"),
-                    dwpFile = binFolder.findFirstFile(it.prefixes, "dwp"),
+                    name = tlName.name,
+                    path = binFolder.absolutePath,
+                    sysroot = inclFolders.first(),
+                    includeFolders = inclFolders + inclArchFolders,
+                    libs = prebuildLibsFolders,
+                    clangFile = binFolder.findFirstFile(tlName.prefixes, "clang"),
+                    clangcppFile = binFolder.findFirstFile(tlName.prefixes, "clang++"),
+                    addr2line = binFolder.findFirstFile(tlName.prefixes, "addr2line"),
+                    arFile = binFolder.findFirstFile(tlName.prefixes, "ar"),
+                    asFile = binFolder.findFirstFile(tlName.prefixes, "as"),
+                    ldFile = binFolder.findFirstFile(tlName.prefixes, "ld"),
+                    nmFile = binFolder.findFirstFile(tlName.prefixes, "nm"),
+                    objcopyFile = binFolder.findFirstFile(tlName.prefixes, "objcopy"),
+                    objdumpFile = binFolder.findFirstFile(tlName.prefixes, "objdump"),
+                    runlibFile = binFolder.findFirstFile(tlName.prefixes, "runlib"),
+                    readelfFile = binFolder.findFirstFile(tlName.prefixes, "readelf"),
+                    sizeFile = binFolder.findFirstFile(tlName.prefixes, "size"),
+                    stringsFile = binFolder.findFirstFile(tlName.prefixes, "strings"),
+                    dwpFile = binFolder.findFirstFile(tlName.prefixes, "dwp"),
                 )
             }
         }
