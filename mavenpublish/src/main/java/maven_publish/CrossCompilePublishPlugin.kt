@@ -8,14 +8,14 @@ import org.gradle.api.publish.plugins.PublishingPlugin
 /**
  * Apply MavenPublishPlugin with configs
  */
-class AndroidNativePublishPlugin : Plugin<Project> {
+class CrossCompilePublishPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         project.pluginManager.apply(PublishingPlugin::class.java)
 
         project.afterEvaluate {
             project.extensions.configure(PublishingExtension::class.java) {
-                androidNativeToMaven(project)
+                crosscompileToMaven(project)
             }
         }
     }

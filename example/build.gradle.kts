@@ -1,10 +1,10 @@
-import com.github.klee0kai.androidnative.*
-import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.env.findAndroidNdk
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.*
+import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
+import com.github.klee0kai.crosscompile.env.findAndroidNdk
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
 plugins {
-    id("com.github.klee0kai.androidnative")
+    id("com.github.klee0kai.crosscompile")
     id("com.dorongold.task-tree") version "2.1.1"
 }
 
@@ -22,7 +22,7 @@ crosscompile {
 
 }
 
-fun AndroidNativeExtension.toyboxBuilds() {
+fun CrossCompileExtension.toyboxBuilds() {
     val toyboxSrcTask = bashBuild("${toybox}_src") {
         description = "Download $toybox source codes"
         doFirst { toyboxSrc.parentFile.mkdirs() }
@@ -40,38 +40,40 @@ fun AndroidNativeExtension.toyboxBuilds() {
 
     bashBuild(toybox, "cur_os") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox(null)
+        buildToybox(null)
     }
     bashBuild(toybox, "android_x86") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_i686(androidApi))
+        buildToybox(android_i686(androidApi))
     }
     bashBuild(toybox, "android_x86_64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_x86_64(androidApi))
+        buildToybox(android_x86_64(androidApi))
     }
     bashBuild(toybox, "android_arm7a") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_arm7a(androidApi))
+        buildToybox(android_arm7a(androidApi))
     }
     bashBuild(toybox, "android_aarch64") {
         dependsOn(toyboxSrcTask)
         conf(findAndroidNdk())
-        trybuildToybox(android_aarch64(androidApi))
+        buildToybox(android_aarch64(androidApi))
     }
 
 }
 
-fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
+fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
     toolchain?.automakeConf(this)
 
-    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchain?.name ?: "cur_os"}")
+    val toolchainName = toolchain?.name ?: "cur_os"
+    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchainName}")
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
+    createEnvFile(toyboxBuild + "toybox_${toolchainName}.sh")
     cmd("make", "clean")
     cmd("./configure")
     cmd("make")
@@ -83,7 +85,7 @@ fun BashBuildTask.trybuildToybox(toolchain: IToolchain? = null) = container {
     }
 }
 
-fun AndroidNativeExtension.opensslBuilds() {
+fun CrossCompileExtension.opensslBuilds() {
     bashBuild(openssl, "cur_os") {
         tryBuildOpensslAndroid(subName!!, isCrosscompile = false)
     }
@@ -113,6 +115,7 @@ fun AndroidNativeExtension.opensslBuilds() {
 }
 
 fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCrosscompile: Boolean = true) {
+
     val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
     doFirst { opensslBuild.parentFile.mkdirs() }
     container {
@@ -127,19 +130,22 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCross
         )
     }
     container {
-        ignoreErr = false
         workFolder = opensslSrc.absolutePath
+        installFolder = opensslBuild.absolutePath
 
-
+        createEnvFile(opensslBuild + "openssl_${name}.sh")
         cmd(if (isCrosscompile) "./Configure" else "./config") {
             addArguments(
                 "no-filenames", "no-afalgeng", "no-asm", "threads",
-                "--prefix=${opensslBuild.absolutePath}"
             )
             if (isCrosscompile) {
                 addArguments(arch, "-D__ANDROID_API__=${api}")
             }
         }
+    }
+
+    container {
+        workFolder = opensslSrc.absolutePath
         cmd("make", "clean")
         cmd("make", "-j8")
         cmd("make", "install", "-j8")
@@ -147,3 +153,5 @@ fun BashBuildTask.tryBuildOpensslAndroid(arch: String, api: Int? = null, isCross
 
 
 }
+
+operator fun File.plus(s: String): File = File(absolutePath, s)

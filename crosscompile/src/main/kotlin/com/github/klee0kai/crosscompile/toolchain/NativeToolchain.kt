@@ -1,4 +1,4 @@
-package com.github.klee0kai.androidnative.toolchain
+package com.github.klee0kai.crosscompile.toolchain
 
 /**
  * Native toolchain:

@@ -1,6 +1,6 @@
-package com.github.klee0kai.androidnative.toolchain
+package com.github.klee0kai.crosscompile.toolchain
 
-import com.github.klee0kai.androidnative.bashtask.IEnvContainer
+import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 
 interface IToolchain {
 

@@ -1,6 +1,6 @@
-package com.github.klee0kai.androidnative.toolchain
+package com.github.klee0kai.crosscompile.toolchain
 
-import com.github.klee0kai.androidnative.bashtask.IEnvContainer
+import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 import java.io.File
 
 open class LLVMToolchain(
@@ -27,7 +27,6 @@ open class LLVMToolchain(
 
     override fun automakeConf(envContainer: IEnvContainer) = envContainer.run {
         env.appendPath("PATH", path)
-        env["PATH"] = "${path}:${env.getOrDefault("PATH", "")}"
 
         env["CC"] = clangFile?.absolutePath
         env["CXX"] = clangcppFile?.absolutePath
@@ -38,13 +37,18 @@ open class LLVMToolchain(
         env["NM"] = nmFile?.absolutePath
         env["OBJCOPY"] = objcopyFile?.absolutePath
 
-        env.appendArgs("CFLAGS", "--sysroot=${sysroot.absolutePath}")
-        env.appendArgs("CPPFLAGS", "--sysroot=${sysroot.absolutePath}")
-        env.appendArgs("CXXFLAGS", "--sysroot=${sysroot.absolutePath}")
 
-        env.appendArgs("LDFLAGS", "")
-        env.appendArgs("OBJCFLAGS", "")
-        env.appendArgs("OBJCXXFLAGS", "")
+        includeFolders.forEach {
+            env.appendArgs("CFLAGS", "-I${it.absolutePath}")
+            env.appendArgs("CPPFLAGS", "-I${it.absolutePath}")
+            env.appendArgs("CXXFLAGS", "-I${it.absolutePath}")
+        }
+
+        libs.forEach {
+            env.appendArgs("LDFLAGS", "-L${it.absolutePath}")
+            env.appendPath("LIBRARY_PATH", it.absolutePath)
+        }
+
     }
 
 

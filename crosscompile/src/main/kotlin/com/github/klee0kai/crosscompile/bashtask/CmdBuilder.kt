@@ -1,4 +1,4 @@
-package com.github.klee0kai.androidnative.bashtask
+package com.github.klee0kai.crosscompile.bashtask
 
 class CmdBuilder {
 

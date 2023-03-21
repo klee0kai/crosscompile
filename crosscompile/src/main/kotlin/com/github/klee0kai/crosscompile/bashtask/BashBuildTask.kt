@@ -1,12 +1,13 @@
-package com.github.klee0kai.androidnative.bashtask
+package com.github.klee0kai.crosscompile.bashtask
 
-import com.github.klee0kai.androidnative.model.TaskName
+import com.github.klee0kai.crosscompile.model.TaskName
 import org.gradle.api.DefaultTask
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.internal.ExecActionFactory
+import java.io.File
 import javax.inject.Inject
 
 open class BashBuildTask @Inject constructor(
@@ -25,14 +26,24 @@ open class BashBuildTask @Inject constructor(
     val subName: String? = taskName.subName
 
     @get:Input
+    @get:Optional
     override val env: MutableMap<String, Any?>
         get() = curEnv.env
 
     @get:Input
+    @get:Optional
     override var workFolder: String
         get() = curEnv.workFolder
         set(value) {
             curEnv.workFolder = value
+        }
+
+    @get:Input
+    @get:Optional
+    override var installFolder: String?
+        get() = curEnv.installFolder
+        set(value) {
+            curEnv.installFolder = value
         }
 
     @get:Input
@@ -50,6 +61,8 @@ open class BashBuildTask @Inject constructor(
 
 
     override fun cmd(vararg cmd: Any) = curEnv.cmd(*cmd)
+
+    override fun createEnvFile(file: File) = curEnv.createEnvFile(file)
 
     override fun container(name: String?, block: IEnvContainer.() -> Unit) = curEnv.container(name, block)
 

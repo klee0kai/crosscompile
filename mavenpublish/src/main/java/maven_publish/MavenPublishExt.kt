@@ -7,7 +7,7 @@ import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.get
 
 
-fun PublishingExtension.androidNativeToMaven(project: Project) {
+fun PublishingExtension.crosscompileToMaven(project: Project) {
     publications {
         create<MavenPublication>("maven") {
             groupId = project.group.toString()
@@ -26,13 +26,13 @@ fun PublishingExtension.androidNativeToMaven(project: Project) {
             }
 
             pom {
-                name.set("androidnative")
+                name.set("crosscompile")
                 description.set("Gradle plugin for native libs building ")
-                url.set("https://github.com/klee0kai/androidnative")
+                url.set("https://github.com/klee0kai/crosscompile")
                 licenses {
                     license {
                         name.set("GNU General Public License, Version 3")
-                        url.set("https://github.com/klee0kai/androidnative/blob/dev/LICENCE.md")
+                        url.set("https://github.com/klee0kai/crosscompile/blob/dev/LICENCE.md")
                     }
                 }
                 developers {

@@ -10,8 +10,8 @@ java {
 
 
 gradlePlugin {
-    plugins.register("androidnative_publish") {
-        id = "maven_publish.androidnative_publish"
-        implementationClass = "maven_publish.AndroidNativePublishPlugin"
+    plugins.register("crosscompile_publish") {
+        id = "maven_publish.crosscompile_publish"
+        implementationClass = "maven_publish.CrossCompilePublishPlugin"
     }
 }

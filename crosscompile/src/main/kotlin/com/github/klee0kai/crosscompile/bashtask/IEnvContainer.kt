@@ -1,7 +1,8 @@
-package com.github.klee0kai.androidnative.bashtask
+package com.github.klee0kai.crosscompile.bashtask
 
-import com.github.klee0kai.androidnative.toolchain.AndroidNdk
-import com.github.klee0kai.androidnative.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.toolchain.AndroidNdkToolchain
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import java.io.File
 
 interface IEnvContainer : IExec {
 
@@ -9,9 +10,13 @@ interface IEnvContainer : IExec {
 
     var workFolder: String
 
+    var installFolder: String?
+
     var ignoreErr: Boolean
 
     fun cmd(vararg cmd: Any)
+
+    fun createEnvFile(file: File)
 
     fun container(name: String? = null, block: IEnvContainer.() -> Unit)
 
@@ -21,7 +26,7 @@ interface IEnvContainer : IExec {
         toolchain.automakeConf(this)
     }
 
-    fun IEnvContainer.conf(ndk: AndroidNdk) {
+    fun IEnvContainer.conf(ndk: AndroidNdkToolchain) {
         ndk.conf(this)
     }
 
