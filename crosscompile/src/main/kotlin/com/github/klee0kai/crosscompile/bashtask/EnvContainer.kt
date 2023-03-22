@@ -9,7 +9,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 
-class EnvContainer(
+open class EnvContainer(
     val name: String,
     val project: Project,
     val objectFactory: ObjectFactory,
@@ -27,19 +27,13 @@ class EnvContainer(
             execSpec.workingDir = File(value)
         }
 
-    override var installFolder: String?
-        get() = (env["DESTDIR"] ?: env["INSTALL_PREFIX"])?.toString()
-        set(value) {
-            env["DESTDIR"] = value
-            env["INSTALL_PREFIX"] = value
-            execSpec.args("--prefix=${value}")
-        }
+    open val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
+    open val exec = mutableListOf<IExec>()
 
+    var childEnvInc = 0
+        private set
+        get() = field++
 
-    private val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
-    private val exec = mutableListOf<IExec>()
-
-    private var childEnvIndex = 0
 
     constructor(name: String, env: EnvContainer) : this(
         name,
@@ -103,8 +97,8 @@ class EnvContainer(
         })
     }
 
-    override fun container(name: String?, block: IEnvContainer.() -> Unit) {
-        val newName = name ?: "${this.name}_ch${childEnvIndex++}"
+    override fun container(name: String?, block: EnvContainer.() -> Unit) {
+        val newName = name ?: genChildContainerName()
         exec.add(EnvContainer(newName, this).also(block))
     }
 
@@ -112,6 +106,7 @@ class EnvContainer(
         exec.forEach { it.exec() }
     }
 
+    open fun genChildContainerName() = "${this.name}_ch${childEnvInc}"
 
     private fun Throwable.causedMessage(): String {
         return "$message \n caused: ${cause?.causedMessage() ?: ""}"

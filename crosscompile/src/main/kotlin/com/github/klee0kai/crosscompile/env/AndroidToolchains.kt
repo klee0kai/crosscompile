@@ -1,6 +1,7 @@
 package com.github.klee0kai.crosscompile.env
 
 import com.github.klee0kai.crosscompile.toolchain.LLVMToolchain
+import com.github.klee0kai.crosscompile.toolchain.ToolchainNaming
 import com.github.klee0kai.crosscompile.utils.pathPlus
 import com.github.klee0kai.crosscompile.utils.removeDoubles
 import com.github.klee0kai.crosscompile.utils.walkStarMasked
@@ -14,38 +15,6 @@ private val prebuildArchMap = mapOf(
     "i686" to "x86",
     "x64_86" to "x64_86",
 )
-
-private data class ToolchainNaming(
-    val name: String,
-
-    /**
-     * available prefixs for bin apps. for example:
-     *
-     *  clang -> armv7a-linux-androideabi16-clang - prefix is  armv7a-linux-androideabi16-
-     */
-    val prefixes: List<String>,
-) {
-    val splitted
-        get() = name.split("-")
-
-    val targetArch: String?
-        get() = splitted.getOrNull(0)
-
-    val host: String?
-        get() = splitted.getOrNull(1)
-
-    val target: String?
-        get() = splitted.getOrNull(2)
-
-
-    val targetAbi: Int?
-        get() = target
-            ?.indexOfLast { !it.isDigit() }
-            ?.let { index ->
-                target?.substring(index + 1)?.toIntOrNull()
-            }
-
-}
 
 
 fun Project.findAndroidToolchains(

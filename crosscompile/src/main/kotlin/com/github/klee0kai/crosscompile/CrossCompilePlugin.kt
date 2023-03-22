@@ -31,7 +31,7 @@ class CrossCompilePlugin : Plugin<Project> {
         val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
         val libGroups = mutableMapOf<String, MutableList<BashBuildTask>>()
 
-        val bashBuild: com.github.klee0kai.crosscompile.BashBuildLambda = { name, subName, taskBlock ->
+        val bashBuild: BashBuildLambda = { name, subName, taskBlock ->
 
             val taskName = genTaskNameFor(if (subName != null) "${name}-${subName}" else name)
             val task = tasks.register(taskName, BashBuildTask::class.java, TaskName(name, subName)).get()
@@ -49,7 +49,7 @@ class CrossCompilePlugin : Plugin<Project> {
             task
         }
 
-        extensions.create<com.github.klee0kai.crosscompile.CrossCompileExtension>("crosscompile", bashBuild, toolchains)
+        extensions.create<CrossCompileExtension>("crosscompile", bashBuild, toolchains)
 
         afterEvaluate {
             registerToolchainsTask(toolchains)
