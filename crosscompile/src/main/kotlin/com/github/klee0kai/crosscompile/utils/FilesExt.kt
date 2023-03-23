@@ -2,6 +2,7 @@ package com.github.klee0kai.crosscompile.utils
 
 import java.io.File
 import java.nio.file.Path
+import java.nio.file.Paths
 
 fun String.pathPlus(path: String?): String {
     return when {
@@ -18,6 +19,8 @@ fun String.pathPlus(path: String?): String {
         }
     }
 }
+
+fun File.walkStarMasked(): Sequence<File> = Paths.get(absolutePath).walkStarMasked()
 
 fun Path.walkStarMasked(): Sequence<File> =
     sequence<File> {

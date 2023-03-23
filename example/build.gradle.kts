@@ -6,6 +6,8 @@ import com.github.klee0kai.crosscompile.bashtask.cmd.cmd
 import com.github.klee0kai.crosscompile.bashtask.use
 import com.github.klee0kai.crosscompile.env.findAndroidNdk
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.utils.walkStarMasked
+import java.io.FileOutputStream
 
 plugins {
     id("com.github.klee0kai.crosscompile")
@@ -16,6 +18,7 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
+val toyboxReportFile = File(project.buildDir, "report/toybox.txt")
 val androidApi = 30
 
 crosscompile {
@@ -61,6 +64,20 @@ fun CrossCompileExtension.toyboxLibs() {
     bashBuild(toybox, "android_aarch64") {
         dependsOn(toyboxSrcTask)
         buildToybox(android_aarch64(androidApi))
+    }
+
+    bashBuild("${toybox}_report") {
+        dependsOn(tasks.getByName(toybox))
+
+        container {
+            toyboxReportFile.parentFile.mkdirs()
+            toyboxReportFile.deleteOnExit()
+            outputStream = { FileOutputStream(toyboxReportFile, true) }
+            workFolder = project.buildDir.absolutePath
+
+            File("${project.buildDir}/libs/*/toybox").walkStarMasked()
+                .forEach { cmd("file", it.absolutePath) }
+        }
     }
 
 }

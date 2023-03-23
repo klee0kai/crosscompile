@@ -6,11 +6,11 @@ import com.github.klee0kai.crosscompile.env.guessAndroidNdk
 import com.github.klee0kai.crosscompile.env.guessAndroidSdk
 import com.github.klee0kai.crosscompile.env.guessJdk
 import com.github.klee0kai.crosscompile.model.TaskName
-import com.github.klee0kai.crosscompile.toolchain.IToolchain
-import org.gradle.api.DefaultTask
+import com.github.klee0kai.crosscompile.tasks.dependsOnAssembleTask
+import com.github.klee0kai.crosscompile.tasks.registerToolchainsTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.HelpTasksPlugin.HELP_GROUP
+import org.gradle.api.Task
 import org.gradle.kotlin.dsl.create
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
@@ -27,9 +27,9 @@ class CrossCompilePlugin : Plugin<Project> {
         val androidSdk = guessAndroidSdk()
         val androidNdk = guessAndroidNdk(androidSdk)
         val toolchains = findAndroidToolchains(androidSdk, androidNdk).sortedBy { it.name }
+        val buildTasks = mutableSetOf<Task>()
 
         val assembleTask = tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
-        val libGroups = mutableMapOf<String, MutableList<BashBuildTask>>()
 
         val bashBuild: BashBuildLambda = { name, subName, taskBlock ->
 
@@ -40,59 +40,24 @@ class CrossCompilePlugin : Plugin<Project> {
                     assembleTask.dependsOn(this)
 
                     taskBlock.invoke(this)
+                    buildTasks.add(this)
                 }
 
-            libGroups.putIfAbsent(name, mutableListOf())
-            libGroups[name]?.lastOrNull()?.let { task.mustRunAfter(it) }
-            libGroups[name]?.add(task)
-
+            dependsOnAssembleTask(task)?.let { buildTasks.add(it) }
             task
         }
 
         extensions.create<CrossCompileExtension>("crosscompile", bashBuild, toolchains)
+        registerToolchainsTask(toolchains)
 
         afterEvaluate {
-            registerToolchainsTask(toolchains)
-            libGroups.forEach { lib ->
-                lib.value.forEach { it.fillDescIfNull() }
-                registerLibAssembleTask(lib.value)
-            }
+            buildTasks.forEach { it.fillDescIfNull() }
         }
-
     }
 
-    private fun BashBuildTask.fillDescIfNull() {
+    private fun Task.fillDescIfNull() {
         if (description.isNullOrBlank()) {
             description = "Build $name"
-        }
-    }
-
-    private fun Project.registerLibAssembleTask(libArchTasks: List<BashBuildTask>) {
-        val name = libArchTasks.first().groupName
-
-        if (tasks.findByName(name) != null)
-            return
-
-        tasks.register(name, DefaultTask::class.java) {
-            val forAllArch = if (libArchTasks.size > 1) "for all arch" else ""
-            description = "$name $forAllArch"
-            group = LifecycleBasePlugin.BUILD_GROUP
-
-            libArchTasks.forEach { dependsOn(it) }
-        }
-    }
-
-    private fun Project.registerToolchainsTask(toolchains: List<IToolchain>) {
-        tasks.register("cppToolchains", DefaultTask::class.java) {
-            description = "Print all available crosscompile cpp toolchains"
-            group = HELP_GROUP
-
-            doLast {
-                println("Available toolchains:\n")
-                toolchains.forEach {
-                    println(it.toString())
-                }
-            }
         }
     }
 

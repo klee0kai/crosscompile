@@ -1,5 +1,6 @@
 package com.github.klee0kai.crosscompile.bashtask
 
+import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.process.internal.DefaultExecSpec
@@ -8,6 +9,7 @@ import org.gradle.process.internal.ExecException
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.OutputStream
 
 open class EnvContainer(
     val name: String,
@@ -30,6 +32,9 @@ open class EnvContainer(
     open val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
     open val exec = mutableListOf<IExec>()
 
+    open val errorOutput: (() -> OutputStream)? = null
+    open var outputStream: (() -> OutputStream)? = null
+
     var childEnvInc = 0
         private set
         get() = field++
@@ -47,7 +52,7 @@ open class EnvContainer(
 
     override fun cmd(vararg cmd: Any) {
         exec.add(IExec {
-            val errStream = ByteArrayOutputStream()
+            val localErrStream = ByteArrayOutputStream()
             val execAction = execAction.newExecAction()
             execSpec.copyTo(execAction)
 
@@ -56,7 +61,11 @@ open class EnvContainer(
                 execAction.commandLine(*fullCmd)
 
                 execAction.isIgnoreExitValue = true
-                execAction.errorOutput = errStream
+                execAction.errorOutput = errorOutput?.let {
+                    TeeOutputStream(TeeOutputStream(it(), System.err), localErrStream)
+                } ?: TeeOutputStream(localErrStream, System.err)
+
+                execAction.standardOutput = outputStream?.let { TeeOutputStream(it(), System.out) } ?: System.out
 
                 println(fullCmd.joinToString(" "))
 
@@ -67,12 +76,10 @@ open class EnvContainer(
                 }
             } catch (e: Exception) {
                 if (!ignoreErr) {
-                    val errStreamText = String(errStream.toByteArray())
+                    val errStreamText = String(localErrStream.toByteArray())
                     throw IOException(
                         "can't run ${fullCmd.joinToString(" ")}\n ${e.causedMessage()} $errStreamText", e
                     )
-                } else {
-                    print(String(errStream.toByteArray()))
                 }
             }
         })
