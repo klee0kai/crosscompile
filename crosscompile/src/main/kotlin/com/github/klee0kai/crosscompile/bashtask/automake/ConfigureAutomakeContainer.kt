@@ -5,10 +5,9 @@ import com.github.klee0kai.crosscompile.bashtask.cmd.CmdContainer
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
 class ConfigureAutomakeContainer(
-    execCmd: List<Any>,
     name: String,
     env: EnvContainer
-) : CmdContainer(execCmd, name, env) {
+) : CmdContainer(name, env) {
 
     var installFolder: String?
         get() = (env["DESTDIR"] ?: env["INSTALL_PREFIX"])?.toString()
@@ -26,7 +25,12 @@ fun EnvContainer.configureAutomake(
     block: ConfigureAutomakeContainer.() -> Unit = {}
 ) {
     val envName = "${this.name}_${configureScript}_${childEnvInc}"
-    exec.add(ConfigureAutomakeContainer(listOf(configureScript), envName, this).apply(block))
+    exec.add(
+        ConfigureAutomakeContainer(envName, this).apply {
+            cmd(configureScript)
+            block.invoke(this)
+        }
+    )
 }
 
 infix fun EnvContainer.use(toolchain: IToolchain) =

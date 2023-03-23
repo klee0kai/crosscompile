@@ -3,7 +3,6 @@ package com.github.klee0kai.crosscompile.bashtask.cmd
 import com.github.klee0kai.crosscompile.bashtask.EnvContainer
 
 open class CmdContainer(
-    val execCmd: List<Any>,
     name: String,
     env: EnvContainer
 ) : EnvContainer(name, env) {
@@ -14,9 +13,8 @@ open class CmdContainer(
         this.arguments.addAll(args)
     }
 
-    override fun cmd(vararg cmd: Any) {
-        super.cmd(*execCmd.toTypedArray(), *cmd, *arguments.toTypedArray())
-    }
+    override fun fullCmd(vararg cmd: Any): Array<Any> =
+        arrayOf(*cmd, *arguments.toTypedArray(), *execSpec.args.toTypedArray())
 
 }
 
@@ -25,5 +23,10 @@ fun EnvContainer.cmd(
     block: CmdContainer.() -> Unit
 ) {
     val envName = "${this.name}_${cmd}_${childEnvInc}"
-    exec.add(CmdContainer(cmd.asList(), envName, this).apply(block))
+    exec.add(CmdContainer(envName, this)
+        .apply {
+            cmd(*cmd)
+            block.invoke(this)
+        }
+    )
 }

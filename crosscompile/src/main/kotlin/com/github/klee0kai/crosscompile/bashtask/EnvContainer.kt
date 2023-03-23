@@ -51,12 +51,12 @@ open class EnvContainer(
             val execAction = execAction.newExecAction()
             execSpec.copyTo(execAction)
 
-            val fullCmd = arrayOf(*cmd, *execSpec.args.toTypedArray())
+            val fullCmd = fullCmd(*cmd)
             try {
                 execAction.commandLine(*fullCmd)
 
-                execAction.isIgnoreExitValue = true;
-                execAction.errorOutput = errStream;
+                execAction.isIgnoreExitValue = true
+                execAction.errorOutput = errStream
 
                 println(fullCmd.joinToString(" "))
 
@@ -105,6 +105,8 @@ open class EnvContainer(
     override fun exec() {
         exec.forEach { it.exec() }
     }
+
+    open fun fullCmd(vararg cmd: Any) = arrayOf(*cmd, *execSpec.args.toTypedArray())
 
     open fun genChildContainerName() = "${this.name}_ch${childEnvInc}"
 
