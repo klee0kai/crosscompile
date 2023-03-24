@@ -19,6 +19,7 @@ val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
 val toyboxReportFile = File(project.buildDir, "report/toybox.txt")
+val opensslReportFile = File(project.buildDir, "report/openssl.txt")
 val androidApi = 30
 
 crosscompile {
@@ -67,12 +68,14 @@ fun CrossCompileExtension.toyboxLibs() {
     }
 
     bashBuild("${toybox}_report") {
-        dependsOn(tasks.getByName(toybox))
+        description = "Report $openssl file headers"
 
         container {
-            toyboxReportFile.parentFile.mkdirs()
             toyboxReportFile.deleteOnExit()
-            outputStream = { FileOutputStream(toyboxReportFile, true) }
+            outputStream = {
+                toyboxReportFile.parentFile.mkdirs()
+                FileOutputStream(toyboxReportFile, true)
+            }
             workFolder = project.buildDir.absolutePath
 
             File("${project.buildDir}/libs/*/toybox").walkStarMasked()
@@ -125,13 +128,33 @@ fun CrossCompileExtension.opensslLibs() {
     bashBuild(openssl, "android-arm64") {
         buildOpenssl(subName!!, android_aarch64(androidApi))
     }
+
+
+    bashBuild("${openssl}_report") {
+        description = "Report $openssl file headers"
+
+        container {
+            opensslReportFile.deleteOnExit()
+            outputStream = {
+                opensslReportFile.parentFile.mkdirs()
+                FileOutputStream(opensslReportFile, true)
+            }
+            workFolder = project.buildDir.absolutePath
+
+            File(project.buildDir, "libs/*/build/bin/openssl").walkStarMasked()
+                .forEach { cmd("file", it.absolutePath) }
+        }
+    }
 }
 
 fun BashBuildTask.buildOpenssl(
     arch: String,
     toolchain: IToolchain? = null,
 ) = container {
-    use(findAndroidNdk())
+    if (toolchain != null) {
+        use(findAndroidNdk())
+        use(toolchain)
+    }
 
     val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
     doFirst { opensslBuild.parentFile.mkdirs() }
@@ -155,7 +178,6 @@ fun BashBuildTask.buildOpenssl(
     configureAutomake(if (toolchain != null) "./Configure" else "./config") {
         workFolder = opensslSrc.absolutePath
         installFolder = opensslBuild.absolutePath
-        toolchain?.let { use(toolchain) }
 
         addArguments("no-filenames", "no-afalgeng", "no-asm", "threads")
         if (toolchain != null) {
