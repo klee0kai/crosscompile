@@ -39,14 +39,6 @@ open class BashBuildTask @Inject constructor(
         }
 
     @get:Input
-    @get:Optional
-    override var installFolder: String?
-        get() = curEnv.installFolder
-        set(value) {
-            curEnv.installFolder = value
-        }
-
-    @get:Input
     override var ignoreErr: Boolean
         get() = curEnv.ignoreErr
         set(value) {
@@ -64,7 +56,7 @@ open class BashBuildTask @Inject constructor(
 
     override fun createEnvFile(file: File) = curEnv.createEnvFile(file)
 
-    override fun container(name: String?, block: IEnvContainer.() -> Unit) = curEnv.container(name, block)
+    override fun container(name: String?, block: EnvContainer.() -> Unit) = curEnv.container(name, block)
 
 
 }

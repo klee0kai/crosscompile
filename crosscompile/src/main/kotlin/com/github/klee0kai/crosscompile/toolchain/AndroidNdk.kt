@@ -2,13 +2,13 @@ package com.github.klee0kai.crosscompile.toolchain
 
 import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 
-class AndroidNdkToolchain(
+open class AndroidNdk(
     val sdkPath: String?,
     val ndkPath: String?,
 ) {
 
 
-    fun conf(envContainer: IEnvContainer) = envContainer.run {
+    fun apply(envContainer: IEnvContainer) = envContainer.run {
         env["ANDROID_SDK"] = sdkPath
         env["ANDROID_SDK_ROOT"] = sdkPath
 
