@@ -14,7 +14,7 @@ import org.gradle.api.Task
 import org.gradle.kotlin.dsl.create
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 
-class CrossCompilePlugin : Plugin<Project> {
+open class CrossCompilePlugin : Plugin<Project> {
 
     private val taskNames = mutableListOf<String>()
 

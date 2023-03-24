@@ -4,7 +4,7 @@ import com.github.klee0kai.crosscompile.bashtask.EnvContainer
 import com.github.klee0kai.crosscompile.bashtask.cmd.CmdContainer
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
-class ConfigureAutomakeContainer(
+open class ConfigureAutomakeContainer(
     name: String,
     env: EnvContainer
 ) : CmdContainer(name, env) {
