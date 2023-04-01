@@ -15,9 +15,7 @@ interface IToolchain {
      */
     fun automakeConf(envContainer: IEnvContainer) = Unit
 
-
 }
-
 
 data class ToolchainNaming(
     val name: String,
@@ -40,7 +38,6 @@ data class ToolchainNaming(
 
     val target: String?
         get() = splitted.getOrNull(2)
-
 
     val targetAbi: Int?
         get() = target

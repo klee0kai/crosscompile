@@ -6,8 +6,6 @@ open class AndroidNdk(
     val sdkPath: String?,
     val ndkPath: String?,
 ) {
-
-
     fun apply(envContainer: IEnvContainer) = envContainer.run {
         env["ANDROID_SDK"] = sdkPath
         env["ANDROID_SDK_ROOT"] = sdkPath

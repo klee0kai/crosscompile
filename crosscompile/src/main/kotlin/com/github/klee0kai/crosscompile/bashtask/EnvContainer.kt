@@ -1,5 +1,7 @@
 package com.github.klee0kai.crosscompile.bashtask
 
+import com.github.klee0kai.shlex.Shlex
+import com.github.klee0kai.shlex.ShlexConfig
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
@@ -30,7 +32,9 @@ open class EnvContainer(
         }
 
     open val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
-    open val exec = mutableListOf<IExec>()
+    open val runQueue = mutableListOf<IRun>()
+
+    open var shlexConfig = ShlexConfig()
 
     open val errorOutput: (() -> OutputStream)? = null
     open var outputStream: (() -> OutputStream)? = null
@@ -50,13 +54,13 @@ open class EnvContainer(
         env.execSpec.copyTo(execSpec)
     }
 
-    override fun cmd(vararg cmd: Any) {
-        exec.add(IExec {
+    override fun exec(vararg cmd: String) {
+        runQueue.add(IRun {
             val localErrStream = ByteArrayOutputStream()
             val execAction = execAction.newExecAction()
             execSpec.copyTo(execAction)
 
-            val fullCmd = fullCmd(*cmd)
+            val fullCmd = fullExecCmd(*cmd)
             try {
                 execAction.commandLine(*fullCmd)
 
@@ -85,8 +89,13 @@ open class EnvContainer(
         })
     }
 
+    override fun sh(vararg cmd: String) {
+        val execCmd = cmd.flatMap { Shlex.split(it, shlexConfig) }
+        exec(*execCmd.toTypedArray())
+    }
+
     override fun createEnvFile(file: File) {
-        exec.add(IExec {
+        runQueue.add(IRun {
             val sh = buildString {
                 append("#!/bin/sh\n\n")
 
@@ -106,14 +115,14 @@ open class EnvContainer(
 
     override fun container(name: String?, block: EnvContainer.() -> Unit) {
         val newName = name ?: genChildContainerName()
-        exec.add(EnvContainer(newName, this).also(block))
+        runQueue.add(EnvContainer(newName, this).also(block))
     }
 
-    override fun exec() {
-        exec.forEach { it.exec() }
+    override fun run() {
+        runQueue.forEach { it.run() }
     }
 
-    open fun fullCmd(vararg cmd: Any) = arrayOf(*cmd, *execSpec.args.toTypedArray())
+    open fun fullExecCmd(vararg cmd: Any) = arrayOf(*cmd, *execSpec.args.toTypedArray())
 
     open fun genChildContainerName() = "${this.name}_ch${childEnvInc}"
 
