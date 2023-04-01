@@ -3,7 +3,6 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
-        maven(url = "https://plugins.gradle.org/m2")
         maven(url = "https://jitpack.io")
     }
 }
@@ -17,6 +16,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "crosscompile"
-includeBuild("klee0kai-crosscompile")
-include("example")
+rootProject.name = "klee0kai-crosscompile"
+

@@ -1,0 +1,78 @@
+name: Deploy Pull Request
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  wf_meta:
+    name: Workflow Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Github Object
+        continue-on-error: true
+        run: echo ${{ toJSON(github) }} > github.json
+      - name: Upload Meta artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: wf-meta
+          path: |
+            github.json 
+  
+
+  build_toybox:
+    name: Build ToyBox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build toybox
+        run: ./gradlew toybox
+      - name: Report toybox
+        run: ./gradlew toybox_report
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: toybox-report
+          path: |
+            ./**/build/report
+      - name: Collect summary
+        run: cat ./**/build/report/*.txt >$GITHUB_STEP_SUMMARY
+
+
+
+  build_openssl:
+    name: Build Openssl
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build OpenSSl
+        run: ./gradlew openssl
+      - name: Report OpenSSl
+        run: ./gradlew openssl_report
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: openssl-report
+          path: |
+            ./**/build/report
+      - name: Collect summary
+        run: cat ./**/build/report/*.txt >$GITHUB_STEP_SUMMARY
+
+
+      

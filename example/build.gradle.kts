@@ -1,12 +1,17 @@
-import com.github.klee0kai.androidnative.android_aarch64
-import com.github.klee0kai.androidnative.android_arm7a
-import com.github.klee0kai.androidnative.android_i686
-import com.github.klee0kai.androidnative.android_x86_64
-import com.github.klee0kai.androidnative.bashtask.BashBuildTask
-import com.github.klee0kai.androidnative.bashtask.configAll
+import com.github.klee0kai.crosscompile.*
+import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
+import com.github.klee0kai.crosscompile.bashtask.automake.configureAutomake
+import com.github.klee0kai.crosscompile.bashtask.automake.use
+import com.github.klee0kai.crosscompile.bashtask.cmd.exec
+import com.github.klee0kai.crosscompile.bashtask.cmd.sh
+import com.github.klee0kai.crosscompile.bashtask.use
+import com.github.klee0kai.crosscompile.env.findAndroidNdk
+import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.utils.walkStarMasked
+import java.io.FileOutputStream
 
 plugins {
-    id("com.github.klee0kai.androidnative")
+    id("klee0kai-crosscompile")
     id("com.dorongold.task-tree") version "2.1.1"
 }
 
@@ -14,92 +19,175 @@ val toybox = "toybox"
 val openssl = "openssl"
 val toyboxSrc = File(project.buildDir, "toybox")
 val opensslSrc = File(project.buildDir, "openssl")
-
-
+val toyboxReportFile = File(project.buildDir, "report/toybox.txt")
+val opensslReportFile = File(project.buildDir, "report/openssl.txt")
+val androidApi = 30
 
 crosscompile {
 
+    toyboxLibs()
 
+    opensslLibs()
+
+}
+
+fun CrossCompileExtension.toyboxLibs() {
     val toyboxSrcTask = bashBuild("${toybox}_src") {
         description = "Download $toybox source codes"
         doFirst { toyboxSrc.parentFile.mkdirs() }
 
         ignoreErr = true
-        cmd("git clone --depth 1 --branch 0.8.9 git@github.com:landley/toybox.git -o origin ${toyboxSrc.absolutePath}")
+        sh(
+            "git clone --depth 1 --branch android-13.0.0_r1 https://android.googlesource.com/platform/external/toybox -o origin",
+            toyboxSrc.absolutePath
+        )
     }
 
-    bashBuild(toybox) {
+    bashBuild(toybox, "cur_os") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("cur_os")
+        buildToybox(null)
     }
-    bashBuild(toybox, android_arm7a(30)) {
+    bashBuild(toybox, "android_x86") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("android_arm7a")
+        buildToybox(android_i686(androidApi))
     }
-    bashBuild(toybox, android_aarch64(30)) {
+    bashBuild(toybox, "android_x86_64") {
         dependsOn(toyboxSrcTask)
-        trybuildToybox("android_aarch64")
+        buildToybox(android_x86_64(androidApi))
+    }
+    bashBuild(toybox, "android_arm7a") {
+        dependsOn(toyboxSrcTask)
+        buildToybox(android_arm7a(androidApi))
+    }
+    bashBuild(toybox, "android_aarch64") {
+        dependsOn(toyboxSrcTask)
+        buildToybox(android_aarch64(androidApi))
     }
 
-    bashBuild(openssl) {
-        tryBuildOpensslAndroid()
-    }
+    bashBuild("${toybox}_report") {
+        description = "Report $openssl file headers"
 
-    bashBuild(openssl, android_i686(21)) {
-        tryBuildOpensslAndroid("android-x86", 21)
-    }
+        container {
+            toyboxReportFile.deleteOnExit()
+            outputStream = {
+                toyboxReportFile.parentFile.mkdirs()
+                FileOutputStream(toyboxReportFile, true)
+            }
+            workFolder = project.buildDir.absolutePath
 
-    bashBuild(openssl, android_x86_64(21)) {
-        tryBuildOpensslAndroid("android-x86_64", 21)
-    }
-
-    bashBuild(openssl, android_arm7a(21)) {
-        tryBuildOpensslAndroid("android-arm", 21)
-    }
-    bashBuild(openssl, android_aarch64(21)) {
-        tryBuildOpensslAndroid("android-arm64", 21)
+            File("${project.buildDir}/libs/*/toybox").walkStarMasked()
+                .forEach { exec("file", it.absolutePath) }
+        }
     }
 
 }
 
-fun BashBuildTask.trybuildToybox(arch: String) = env {
-    val toyboxBuild = File(project.buildDir, "libs/toybox-${arch}")
+fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
+    if (toolchain != null) {
+        use(findAndroidNdk())
+        use(toolchain)
+    }
+
+    val toolchainName = toolchain?.name ?: "cur_os"
+    val toyboxBuild = File(project.buildDir, "libs/toybox-${toolchainName}")
     doFirst { toyboxBuild.parentFile.mkdirs() }
 
     workFolder = toyboxSrc.absolutePath
-    configAll()
-    cmd("make clean")
-    cmd("./configure")
-    cmd("make")
 
-    env {
+    createEnvFile(toyboxBuild + "toybox_${toolchainName}.sh")
+
+    sh("make clean") { ignoreErr = true }
+    configureAutomake("./configure")
+    sh("make")
+    container {
         ignoreErr = true
-        cmd("cp toybox $toyboxBuild")
-        cmd("file toybox")
+        sh("cp toybox", toyboxBuild.absolutePath)
+        sh("file toybox")
     }
 }
 
+fun CrossCompileExtension.opensslLibs() {
+    bashBuild(openssl, "cur_os") {
+        buildOpenssl(subName!!)
+    }
 
-fun BashBuildTask.tryBuildOpensslAndroid(arch: String? = null, api: Int? = null) {
-    val opensslBuild = File(project.buildDir, "libs/openssl-${arch ?: "cur"}/build")
+    bashBuild(openssl, "android-x86") {
+        buildOpenssl(subName!!, android_i686(androidApi))
+    }
+
+    bashBuild(openssl, "android-x86_64") {
+        buildOpenssl(subName!!, android_x86_64(androidApi))
+    }
+
+    bashBuild(openssl, "android-arm") {
+        buildOpenssl(subName!!, android_arm7a(androidApi))
+    }
+    bashBuild(openssl, "android-arm64") {
+        buildOpenssl(subName!!, android_aarch64(androidApi))
+    }
+
+
+    bashBuild("${openssl}_report") {
+        description = "Report $openssl file headers"
+
+        container {
+            opensslReportFile.deleteOnExit()
+            outputStream = {
+                opensslReportFile.parentFile.mkdirs()
+                FileOutputStream(opensslReportFile, true)
+            }
+            workFolder = project.buildDir.absolutePath
+
+            File(project.buildDir, "libs/*/build/bin/openssl").walkStarMasked()
+                .forEach { exec("file", it.absolutePath) }
+        }
+    }
+}
+
+fun BashBuildTask.buildOpenssl(
+    arch: String,
+    toolchain: IToolchain? = null,
+) = container {
+    if (toolchain != null) {
+        use(findAndroidNdk())
+        use(toolchain)
+    }
+
+    val opensslBuild = File(project.buildDir, "libs/openssl-${arch}/build")
     doFirst { opensslBuild.parentFile.mkdirs() }
-    env {
+    container {
         ignoreErr = true
-        cmd("git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin ${opensslSrc.absolutePath}")
+        sh(
+            "git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin",
+            opensslSrc.absolutePath
+        )
     }
-    env {
-        ignoreErr = false
-        workFolder = opensslSrc.absolutePath
 
-        configAll()
-        val additionalArgs = if (arch != null) "$arch -D__ANDROID_API__=${api}" else ""
-        val confArgs = "no-filenames no-afalgeng no-asm threads  $additionalArgs --prefix=${opensslBuild.absolutePath}"
-        val configScript = if (arch != null) "./Configure" else "./config"
-        cmd("$configScript $confArgs")
-        cmd("make clean")
-        cmd("make -j8")
-        cmd("make install -j8")
+
+    exec("make", "clean") {
+        workFolder = opensslSrc.absolutePath
+        ignoreErr = true
+    }
+    configureAutomake(if (toolchain != null) "./Configure" else "./config") {
+        workFolder = opensslSrc.absolutePath
+        installFolder = opensslBuild.absolutePath
+
+        shArgs("no-filenames no-afalgeng no-asm threads")
+        if (toolchain != null) {
+            val abi = toolchain.nameHelper.targetAbi ?: 1
+            shArgs(arch, "-D__ANDROID_API__=${abi}")
+        }
+
+        createEnvFile(opensslBuild + "openssl_${name}.sh")
+    }
+
+    container {
+        workFolder = opensslSrc.absolutePath
+        sh("make -j8")
+        sh("make install -j8")
     }
 
 
 }
+
+operator fun File.plus(s: String): File = File(absolutePath, s)
