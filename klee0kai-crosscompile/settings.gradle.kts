@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "crosscompile"
+rootProject.name = "klee0kai-crosscompile"
 

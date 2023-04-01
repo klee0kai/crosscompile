@@ -16,5 +16,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "crosscompile"
-includeBuild("crosscompile")
+includeBuild("klee0kai-crosscompile")
 include("example")
