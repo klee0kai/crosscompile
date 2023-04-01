@@ -3,6 +3,7 @@ import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
 import com.github.klee0kai.crosscompile.bashtask.automake.configureAutomake
 import com.github.klee0kai.crosscompile.bashtask.automake.use
 import com.github.klee0kai.crosscompile.bashtask.cmd.exec
+import com.github.klee0kai.crosscompile.bashtask.cmd.sh
 import com.github.klee0kai.crosscompile.bashtask.use
 import com.github.klee0kai.crosscompile.env.findAndroidNdk
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
@@ -37,12 +38,8 @@ fun CrossCompileExtension.toyboxLibs() {
 
         ignoreErr = true
         exec(
-            "git",
-            "clone",
-            "--depth", "1",
-            "--branch", "android-13.0.0_r1",
-            "https://android.googlesource.com/platform/external/toybox",
-            "-o", "origin", toyboxSrc.absolutePath
+            "git clone --depth 1 --branch android-13.0.0_r1 https://android.googlesource.com/platform/external/toybox -o origin",
+            toyboxSrc.absolutePath
         )
     }
 
@@ -99,13 +96,13 @@ fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
 
     createEnvFile(toyboxBuild + "toybox_${toolchainName}.sh")
 
-    exec("make", "clean") { ignoreErr = true }
+    sh("make clean") { ignoreErr = true }
     configureAutomake("./configure")
-    exec("make")
+    sh("make")
     container {
         ignoreErr = true
-        exec("cp", "toybox", toyboxBuild)
-        exec("file", "toybox")
+        sh("cp toybox", toyboxBuild.absolutePath)
+        sh("file toybox")
     }
 }
 
@@ -160,13 +157,9 @@ fun BashBuildTask.buildOpenssl(
     doFirst { opensslBuild.parentFile.mkdirs() }
     container {
         ignoreErr = true
-        exec(
-            "git",
-            "clone",
-            "--depth", "1",
-            "--branch", "OpenSSL_1_1_1-stable",
-            "https://github.com/openssl/openssl.git",
-            "-o", "origin", opensslSrc.absolutePath
+        sh(
+            "git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o, origin",
+            opensslSrc.absolutePath
         )
     }
 
@@ -179,10 +172,10 @@ fun BashBuildTask.buildOpenssl(
         workFolder = opensslSrc.absolutePath
         installFolder = opensslBuild.absolutePath
 
-        addExecArgs("no-filenames", "no-afalgeng", "no-asm", "threads")
+        shArgs("no-filenames no-afalgeng no-asm threads")
         if (toolchain != null) {
             val abi = toolchain.nameHelper.targetAbi ?: 1
-            addExecArgs(arch, "-D__ANDROID_API__=${abi}")
+            shArgs(arch, "-D__ANDROID_API__=${abi}")
         }
 
         createEnvFile(opensslBuild + "openssl_${name}.sh")
@@ -190,8 +183,8 @@ fun BashBuildTask.buildOpenssl(
 
     container {
         workFolder = opensslSrc.absolutePath
-        exec("make", "-j8")
-        exec("make", "install", "-j8")
+        sh("make -j8")
+        sh("make install -j8")
     }
 
 

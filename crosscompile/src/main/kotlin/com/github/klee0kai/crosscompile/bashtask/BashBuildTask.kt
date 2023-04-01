@@ -50,7 +50,9 @@ open class BashBuildTask @Inject constructor(
     @TaskAction
     override fun run() = curEnv.run()
 
-    override fun exec(vararg cmd: Any) = curEnv.exec(*cmd)
+    override fun exec(vararg cmd: String) = curEnv.exec(*cmd)
+
+    override fun sh(vararg cmd: String) = curEnv.sh(*cmd)
 
     override fun createEnvFile(file: File) = curEnv.createEnvFile(file)
 

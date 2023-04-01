@@ -5,16 +5,41 @@ import java.io.File
 
 interface IEnvContainer : IRun {
 
+    /**
+     * Environment variables
+     */
     val env: MutableMap<String, Any?>
 
+    /**
+     * Current work directory for executing app
+     */
     var workFolder: String
 
+    /**
+     * Ignore app response code
+     */
     var ignoreErr: Boolean
 
-    fun exec(vararg cmd: Any)
+    /**
+     * Exec app with arguments
+     */
+    fun exec(vararg cmd: String)
 
+    /**
+     *  Exec app with arguments
+     *   Using Shell argument
+     */
+    fun sh(vararg cmd: String)
+
+    /**
+     * create environment file
+     */
     fun createEnvFile(file: File)
 
+    /**
+     * Wrap to container.
+     * Common use app arguments and environment variables
+     */
     fun container(name: String? = null, block: EnvContainer.() -> Unit)
 
 }

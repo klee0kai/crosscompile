@@ -1,5 +1,7 @@
 package com.github.klee0kai.crosscompile.bashtask
 
+import com.github.klee0kai.shlex.Shlex
+import com.github.klee0kai.shlex.ShlexConfig
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
@@ -32,6 +34,8 @@ open class EnvContainer(
     open val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
     open val runQueue = mutableListOf<IRun>()
 
+    open var shlexConfig = ShlexConfig()
+
     open val errorOutput: (() -> OutputStream)? = null
     open var outputStream: (() -> OutputStream)? = null
 
@@ -50,7 +54,7 @@ open class EnvContainer(
         env.execSpec.copyTo(execSpec)
     }
 
-    override fun exec(vararg cmd: Any) {
+    override fun exec(vararg cmd: String) {
         runQueue.add(IRun {
             val localErrStream = ByteArrayOutputStream()
             val execAction = execAction.newExecAction()
@@ -83,6 +87,11 @@ open class EnvContainer(
                 }
             }
         })
+    }
+
+    override fun sh(vararg cmd: String) {
+        val execCmd = cmd.flatMap { Shlex.split(it, shlexConfig) }
+        exec(*execCmd.toTypedArray())
     }
 
     override fun createEnvFile(file: File) {
