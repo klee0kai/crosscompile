@@ -17,5 +17,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "crosscompile"
 includeBuild("crosscompile")
-includeBuild("mavenpublish")
 include("example")

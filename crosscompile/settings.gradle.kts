@@ -14,4 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "crosscompile-plugin"
+rootProject.name = "crosscompile"
+

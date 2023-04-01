@@ -10,7 +10,7 @@ import com.github.klee0kai.crosscompile.utils.walkStarMasked
 import java.io.FileOutputStream
 
 plugins {
-    id("com.github.klee0kai.crosscompile")
+    id("crosscompile")
     id("com.dorongold.task-tree") version "2.1.1"
 }
 
