@@ -1,6 +1,7 @@
 package com.github.klee0kai.crosscompile.bashtask.automake
 
 import com.github.klee0kai.crosscompile.bashtask.EnvContainer
+import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 import com.github.klee0kai.crosscompile.bashtask.cmd.CmdContainer
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
 
@@ -33,5 +34,5 @@ fun EnvContainer.configureAutomake(
     )
 }
 
-infix fun EnvContainer.use(toolchain: IToolchain) =
+infix fun IEnvContainer.use(toolchain: IToolchain) =
     toolchain.automakeConf(this)
