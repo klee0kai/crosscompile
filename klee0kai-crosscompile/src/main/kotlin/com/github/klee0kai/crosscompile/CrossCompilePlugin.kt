@@ -39,7 +39,11 @@ open class CrossCompilePlugin : Plugin<Project> {
                     group = LifecycleBasePlugin.BUILD_GROUP
                     assembleTask.dependsOn(this)
 
-                    taskBlock.invoke(this)
+                    try {
+                        taskBlock.invoke(this)
+                    } catch (e: Throwable) {
+                        configureException = e
+                    }
                     buildTasks.add(this)
                 }
 

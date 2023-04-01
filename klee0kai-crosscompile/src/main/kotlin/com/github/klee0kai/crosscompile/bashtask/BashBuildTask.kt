@@ -45,6 +45,14 @@ open class BashBuildTask @Inject constructor(
             curEnv.ignoreErr = value
         }
 
+    @get:Input
+    @get:Optional
+    override var configureException: Throwable?
+        get() = curEnv.configureException
+        set(value) {
+            curEnv.configureException = value
+        }
+
     private val curEnv = EnvContainer(name, project, objectFactory, execAction)
 
     @TaskAction

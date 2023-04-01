@@ -21,6 +21,12 @@ interface IEnvContainer : IRun {
     var ignoreErr: Boolean
 
     /**
+     * Exception on config stage.
+     * Ignore until run
+     */
+    var configureException: Throwable?
+
+    /**
      * Exec app with arguments
      */
     fun exec(vararg cmd: String)
