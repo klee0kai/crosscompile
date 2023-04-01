@@ -18,6 +18,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "crosscompile"
-includeBuild("crosscompile")
-includeBuild("mavenpublish")
+includeBuild("klee0kai-crosscompile")
 include("example")

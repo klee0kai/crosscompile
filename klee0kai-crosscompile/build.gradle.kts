@@ -9,6 +9,7 @@ buildscript {
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
+    id("com.gradle.plugin-publish") version "1.1.0"
 }
 
 java {
@@ -19,8 +20,12 @@ java {
 
 gradlePlugin {
     plugins.register("crosscompile") {
-        id = "com.github.klee0kai.crosscompile"
+        id = "klee0kai-crosscompile"
+        group = "com.github.klee0kai"
+        version = "0.0.1"
         implementationClass = "com.github.klee0kai.crosscompile.CrossCompilePlugin"
+        displayName = "Crosscompile"
+        description = "Gradle plugin for native libs building"
     }
 }
 

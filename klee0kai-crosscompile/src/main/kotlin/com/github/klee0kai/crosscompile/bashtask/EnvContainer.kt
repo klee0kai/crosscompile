@@ -25,6 +25,8 @@ open class EnvContainer(
 
     override var ignoreErr: Boolean = false
 
+    override var configureException: Throwable? = null
+
     override var workFolder: String
         get() = execSpec.workingDir.absolutePath
         set(value) {
@@ -119,6 +121,7 @@ open class EnvContainer(
     }
 
     override fun run() {
+        configureException?.let { error(it) }
         runQueue.forEach { it.run() }
     }
 
