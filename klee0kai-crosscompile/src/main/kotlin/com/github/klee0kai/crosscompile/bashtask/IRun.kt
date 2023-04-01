@@ -1,7 +1,7 @@
 package com.github.klee0kai.crosscompile.bashtask
 
-fun interface IExec {
+fun interface IRun {
 
-    fun exec()
+    fun run()
 
 }
