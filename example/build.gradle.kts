@@ -37,7 +37,7 @@ fun CrossCompileExtension.toyboxLibs() {
         doFirst { toyboxSrc.parentFile.mkdirs() }
 
         ignoreErr = true
-        exec(
+        sh(
             "git clone --depth 1 --branch android-13.0.0_r1 https://android.googlesource.com/platform/external/toybox -o origin",
             toyboxSrc.absolutePath
         )
@@ -158,7 +158,7 @@ fun BashBuildTask.buildOpenssl(
     container {
         ignoreErr = true
         sh(
-            "git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o, origin",
+            "git clone --depth 1 --branch OpenSSL_1_1_1-stable https://github.com/openssl/openssl.git -o origin",
             opensslSrc.absolutePath
         )
     }
