@@ -25,9 +25,9 @@ fun EnvContainer.configureAutomake(
     block: ConfigureAutomakeContainer.() -> Unit = {}
 ) {
     val envName = "${this.name}_${configureScript}_${childEnvInc}"
-    exec.add(
+    runQueue.add(
         ConfigureAutomakeContainer(envName, this).apply {
-            cmd(configureScript)
+            exec(configureScript)
             block.invoke(this)
         }
     )

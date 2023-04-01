@@ -2,7 +2,7 @@ import com.github.klee0kai.crosscompile.*
 import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
 import com.github.klee0kai.crosscompile.bashtask.automake.configureAutomake
 import com.github.klee0kai.crosscompile.bashtask.automake.use
-import com.github.klee0kai.crosscompile.bashtask.cmd.cmd
+import com.github.klee0kai.crosscompile.bashtask.cmd.exec
 import com.github.klee0kai.crosscompile.bashtask.use
 import com.github.klee0kai.crosscompile.env.findAndroidNdk
 import com.github.klee0kai.crosscompile.toolchain.IToolchain
@@ -36,7 +36,7 @@ fun CrossCompileExtension.toyboxLibs() {
         doFirst { toyboxSrc.parentFile.mkdirs() }
 
         ignoreErr = true
-        cmd(
+        exec(
             "git",
             "clone",
             "--depth", "1",
@@ -79,7 +79,7 @@ fun CrossCompileExtension.toyboxLibs() {
             workFolder = project.buildDir.absolutePath
 
             File("${project.buildDir}/libs/*/toybox").walkStarMasked()
-                .forEach { cmd("file", it.absolutePath) }
+                .forEach { exec("file", it.absolutePath) }
         }
     }
 
@@ -99,13 +99,13 @@ fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
 
     createEnvFile(toyboxBuild + "toybox_${toolchainName}.sh")
 
-    cmd("make", "clean") { ignoreErr = true }
+    exec("make", "clean") { ignoreErr = true }
     configureAutomake("./configure")
-    cmd("make")
+    exec("make")
     container {
         ignoreErr = true
-        cmd("cp", "toybox", toyboxBuild)
-        cmd("file", "toybox")
+        exec("cp", "toybox", toyboxBuild)
+        exec("file", "toybox")
     }
 }
 
@@ -142,7 +142,7 @@ fun CrossCompileExtension.opensslLibs() {
             workFolder = project.buildDir.absolutePath
 
             File(project.buildDir, "libs/*/build/bin/openssl").walkStarMasked()
-                .forEach { cmd("file", it.absolutePath) }
+                .forEach { exec("file", it.absolutePath) }
         }
     }
 }
@@ -160,7 +160,7 @@ fun BashBuildTask.buildOpenssl(
     doFirst { opensslBuild.parentFile.mkdirs() }
     container {
         ignoreErr = true
-        cmd(
+        exec(
             "git",
             "clone",
             "--depth", "1",
@@ -171,7 +171,7 @@ fun BashBuildTask.buildOpenssl(
     }
 
 
-    cmd("make", "clean") {
+    exec("make", "clean") {
         workFolder = opensslSrc.absolutePath
         ignoreErr = true
     }
@@ -179,10 +179,10 @@ fun BashBuildTask.buildOpenssl(
         workFolder = opensslSrc.absolutePath
         installFolder = opensslBuild.absolutePath
 
-        addArguments("no-filenames", "no-afalgeng", "no-asm", "threads")
+        addExecArgs("no-filenames", "no-afalgeng", "no-asm", "threads")
         if (toolchain != null) {
             val abi = toolchain.nameHelper.targetAbi ?: 1
-            addArguments(arch, "-D__ANDROID_API__=${abi}")
+            addExecArgs(arch, "-D__ANDROID_API__=${abi}")
         }
 
         createEnvFile(opensslBuild + "openssl_${name}.sh")
@@ -190,8 +190,8 @@ fun BashBuildTask.buildOpenssl(
 
     container {
         workFolder = opensslSrc.absolutePath
-        cmd("make", "-j8")
-        cmd("make", "install", "-j8")
+        exec("make", "-j8")
+        exec("make", "install", "-j8")
     }
 
 

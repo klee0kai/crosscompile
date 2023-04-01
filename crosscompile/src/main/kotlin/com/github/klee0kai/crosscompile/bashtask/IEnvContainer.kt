@@ -3,7 +3,7 @@ package com.github.klee0kai.crosscompile.bashtask
 import com.github.klee0kai.crosscompile.toolchain.AndroidNdk
 import java.io.File
 
-interface IEnvContainer : IExec {
+interface IEnvContainer : IRun {
 
     val env: MutableMap<String, Any?>
 
@@ -11,7 +11,7 @@ interface IEnvContainer : IExec {
 
     var ignoreErr: Boolean
 
-    fun cmd(vararg cmd: Any)
+    fun exec(vararg cmd: Any)
 
     fun createEnvFile(file: File)
 
