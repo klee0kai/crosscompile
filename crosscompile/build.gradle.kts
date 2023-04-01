@@ -12,7 +12,7 @@ java {
 
 gradlePlugin {
     plugins.register("crosscompile") {
-        id = "crosscompile"
+        id = "klee0kai-crosscompile"
         group = "com.github.klee0kai"
         version = "0.0.1"
         implementationClass = "com.github.klee0kai.crosscompile.CrossCompilePlugin"
