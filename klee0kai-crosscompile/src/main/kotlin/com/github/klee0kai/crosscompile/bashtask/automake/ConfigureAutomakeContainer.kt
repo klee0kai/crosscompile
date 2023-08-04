@@ -1,13 +1,13 @@
 package com.github.klee0kai.crosscompile.bashtask.automake
 
+import com.github.klee0kai.crosscompile.bashtask.EnvContainerImpl
 import com.github.klee0kai.crosscompile.bashtask.EnvContainer
-import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
 import com.github.klee0kai.crosscompile.bashtask.cmd.CmdContainer
-import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.toolchain.Toolchain
 
 open class ConfigureAutomakeContainer(
     name: String,
-    env: EnvContainer
+    env: EnvContainerImpl
 ) : CmdContainer(name, env) {
 
     var installFolder: String?
@@ -21,7 +21,7 @@ open class ConfigureAutomakeContainer(
 }
 
 
-fun EnvContainer.configureAutomake(
+fun EnvContainerImpl.configureAutomake(
     configureScript: String = "./Configure",
     block: ConfigureAutomakeContainer.() -> Unit = {}
 ) {
@@ -34,5 +34,5 @@ fun EnvContainer.configureAutomake(
     )
 }
 
-infix fun IEnvContainer.use(toolchain: IToolchain) =
+infix fun EnvContainer.use(toolchain: Toolchain) =
     toolchain.automakeConf(this)

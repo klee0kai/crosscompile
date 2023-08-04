@@ -1,136 +1,60 @@
 package com.github.klee0kai.crosscompile.bashtask
 
-import com.github.klee0kai.shlex.Shlex
-import com.github.klee0kai.shlex.ShlexConfig
-import org.apache.tools.ant.util.TeeOutputStream
-import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
-import org.gradle.process.internal.DefaultExecSpec
-import org.gradle.process.internal.ExecActionFactory
-import org.gradle.process.internal.ExecException
-import java.io.ByteArrayOutputStream
+import com.github.klee0kai.crosscompile.toolchain.AndroidNdk
 import java.io.File
-import java.io.IOException
-import java.io.OutputStream
 
-open class EnvContainer(
-    val name: String,
-    val project: Project,
-    val objectFactory: ObjectFactory,
-    val execAction: ExecActionFactory,
-) : IEnvContainer {
+interface EnvContainer : Run {
 
-    override val env: MutableMap<String, Any?>
-        get() = execSpec.environment
+    /**
+     * Environment variables
+     */
+    val env: MutableMap<String, Any?>
 
-    override var ignoreErr: Boolean = false
+    /**
+     * Current work directory for executing app
+     */
+    var workFolder: String
 
-    override var configureException: Throwable? = null
+    /**
+     * Ignore app response code
+     */
+    var ignoreErr: Boolean
 
-    override var workFolder: String
-        get() = execSpec.workingDir.absolutePath
-        set(value) {
-            execSpec.workingDir = File(value)
-        }
+    /**
+     * Exception on config stage.
+     * Ignore until run
+     */
+    var configureException: Throwable?
 
-    open val execSpec = objectFactory.newInstance(DefaultExecSpec::class.java)
-    open val runQueue = mutableListOf<IRun>()
+    /**
+     * Exec app with arguments
+     */
+    fun exec(vararg cmd: String)
 
-    open var shlexConfig = ShlexConfig()
+    /**
+     *  Exec app with arguments
+     *   Using Shell argument
+     */
+    fun sh(vararg cmd: String)
 
-    open val errorOutput: (() -> OutputStream)? = null
-    open var outputStream: (() -> OutputStream)? = null
+    /**
+     * create environment file
+     */
+    fun createEnvFile(file: File)
 
-    var childEnvInc = 0
-        private set
-        get() = field++
-
-
-    constructor(name: String, env: EnvContainer) : this(
-        name,
-        env.project,
-        env.objectFactory,
-        env.execAction,
-    ) {
-        ignoreErr = env.ignoreErr
-        env.execSpec.copyTo(execSpec)
-    }
-
-    override fun exec(vararg cmd: String) {
-        runQueue.add(IRun {
-            val localErrStream = ByteArrayOutputStream()
-            val execAction = execAction.newExecAction()
-            execSpec.copyTo(execAction)
-
-            val fullCmd = fullExecCmd(*cmd)
-            try {
-                execAction.commandLine(*fullCmd)
-
-                execAction.isIgnoreExitValue = true
-                execAction.errorOutput = errorOutput?.let {
-                    TeeOutputStream(TeeOutputStream(it(), System.err), localErrStream)
-                } ?: TeeOutputStream(localErrStream, System.err)
-
-                execAction.standardOutput = outputStream?.let { TeeOutputStream(it(), System.out) } ?: System.out
-
-                println(fullCmd.joinToString(" "))
-
-                val result = execAction.execute()
-
-                if (result.exitValue != 0) {
-                    throw ExecException("Cmd ${fullCmd.joinToString(" ")} finished with exit code ${result.exitValue}")
-                }
-            } catch (e: Exception) {
-                if (!ignoreErr) {
-                    val errStreamText = String(localErrStream.toByteArray())
-                    throw IOException(
-                        "can't run ${fullCmd.joinToString(" ")}\n ${e.causedMessage()} $errStreamText", e
-                    )
-                }
-            }
-        })
-    }
-
-    override fun sh(vararg cmd: String) {
-        val execCmd = cmd.flatMap { Shlex.split(it, shlexConfig) }
-        exec(*execCmd.toTypedArray())
-    }
-
-    override fun createEnvFile(file: File) {
-        runQueue.add(IRun {
-            val sh = buildString {
-                append("#!/bin/sh\n\n")
-
-                env.keys.forEach { key ->
-                    val value = env.getOrDefault(key, null)?.toString()
-                    if (!value.isNullOrBlank()) append("${key}=\"${value}\"\n")
-                }
-
-                append("\n\n")
-                append("$@ ${execSpec.args.joinToString(" ")}")
-            }
-
-            file.parentFile.mkdirs()
-            file.writeText(sh)
-        })
-    }
-
-    override fun container(name: String?, block: EnvContainer.() -> Unit) {
-        val newName = name ?: genChildContainerName()
-        runQueue.add(EnvContainer(newName, this).also(block))
-    }
-
-    override fun run() {
-        configureException?.let { error(it) }
-        runQueue.forEach { it.run() }
-    }
-
-    open fun fullExecCmd(vararg cmd: Any) = arrayOf(*cmd, *execSpec.args.toTypedArray())
-
-    open fun genChildContainerName() = "${this.name}_ch${childEnvInc}"
-
-    private fun Throwable.causedMessage(): String {
-        return "$message \n caused: ${cause?.causedMessage() ?: ""}"
-    }
+    /**
+     * Wrap to container.
+     * Common use app arguments and environment variables
+     */
+    fun container(name: String? = null, block: EnvContainerImpl.() -> Unit)
 
 }
+
+
+infix fun EnvContainer.use(ndk: AndroidNdk) = ndk.apply(this)
+
+
+
+
+
+

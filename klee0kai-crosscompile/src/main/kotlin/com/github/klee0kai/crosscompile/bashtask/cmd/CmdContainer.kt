@@ -1,12 +1,12 @@
 package com.github.klee0kai.crosscompile.bashtask.cmd
 
-import com.github.klee0kai.crosscompile.bashtask.EnvContainer
+import com.github.klee0kai.crosscompile.bashtask.EnvContainerImpl
 import com.github.klee0kai.shlex.Shlex
 
 open class CmdContainer(
     name: String,
-    env: EnvContainer
-) : EnvContainer(name, env) {
+    env: EnvContainerImpl
+) : EnvContainerImpl(name, env) {
 
     open val arguments = mutableListOf<Any>()
 
@@ -23,7 +23,7 @@ open class CmdContainer(
 
 }
 
-fun EnvContainer.exec(
+fun EnvContainerImpl.exec(
     vararg cmd: String,
     block: CmdContainer.() -> Unit
 ) {
@@ -36,7 +36,7 @@ fun EnvContainer.exec(
     )
 }
 
-fun EnvContainer.sh(
+fun EnvContainerImpl.sh(
     vararg cmd: String,
     block: CmdContainer.() -> Unit
 ) {

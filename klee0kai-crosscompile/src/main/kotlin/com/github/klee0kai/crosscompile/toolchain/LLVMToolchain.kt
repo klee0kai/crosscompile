@@ -1,6 +1,6 @@
 package com.github.klee0kai.crosscompile.toolchain
 
-import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
+import com.github.klee0kai.crosscompile.bashtask.EnvContainer
 import java.io.File
 
 open class LLVMToolchain(
@@ -23,9 +23,9 @@ open class LLVMToolchain(
     val sizeFile: File?,
     val stringsFile: File?,
     val dwpFile: File?,
-) : IToolchain {
+) : Toolchain {
 
-    override fun automakeConf(envContainer: IEnvContainer) = envContainer.run {
+    override fun automakeConf(envContainer: EnvContainer) = envContainer.run {
         env.appendPath("PATH", path)
 
         env["CC"] = clangFile?.absolutePath
@@ -36,6 +36,7 @@ open class LLVMToolchain(
         env["LD"] = ldFile?.absolutePath
         env["NM"] = nmFile?.absolutePath
         env["OBJCOPY"] = objcopyFile?.absolutePath
+        //todo add RANLIB,STRIP, TARGET, TOOLCHAIN
 
 
         includeFolders.forEach {

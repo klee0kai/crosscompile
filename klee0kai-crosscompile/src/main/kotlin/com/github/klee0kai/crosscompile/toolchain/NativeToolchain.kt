@@ -4,9 +4,9 @@ package com.github.klee0kai.crosscompile.toolchain
  * Native toolchain:
  *  build = host = target
  *
- * No any overrides
+ * No have any overrides
  */
-object NativeToolchain : IToolchain {
+object NativeToolchain : Toolchain {
     override val name: String = "cur_os"
     override val path: String? = null
 

@@ -1,7 +1,7 @@
 package com.github.klee0kai.crosscompile
 
 import com.github.klee0kai.crosscompile.bashtask.BashBuildTask
-import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.toolchain.Toolchain
 import javax.inject.Inject
 
 
@@ -9,7 +9,7 @@ typealias BashBuildLambda = (name: String, subName: String?, block: BashBuildTas
 
 open class CrossCompileExtension @Inject constructor(
     private val __bashBuild: BashBuildLambda,
-    val toolchains: List<IToolchain>,
+    val toolchains: List<Toolchain>,
 ) {
 
     /**

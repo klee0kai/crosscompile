@@ -6,7 +6,7 @@ import com.github.klee0kai.crosscompile.bashtask.cmd.exec
 import com.github.klee0kai.crosscompile.bashtask.cmd.sh
 import com.github.klee0kai.crosscompile.bashtask.use
 import com.github.klee0kai.crosscompile.env.findAndroidNdk
-import com.github.klee0kai.crosscompile.toolchain.IToolchain
+import com.github.klee0kai.crosscompile.toolchain.Toolchain
 import com.github.klee0kai.crosscompile.utils.walkStarMasked
 import java.io.FileOutputStream
 
@@ -82,7 +82,7 @@ fun CrossCompileExtension.toyboxLibs() {
 
 }
 
-fun BashBuildTask.buildToybox(toolchain: IToolchain? = null) = container {
+fun BashBuildTask.buildToybox(toolchain: Toolchain? = null) = container {
     if (toolchain != null) {
         use(findAndroidNdk())
         use(toolchain)
@@ -146,7 +146,7 @@ fun CrossCompileExtension.opensslLibs() {
 
 fun BashBuildTask.buildOpenssl(
     arch: String,
-    toolchain: IToolchain? = null,
+    toolchain: Toolchain? = null,
 ) = container {
     if (toolchain != null) {
         use(findAndroidNdk())

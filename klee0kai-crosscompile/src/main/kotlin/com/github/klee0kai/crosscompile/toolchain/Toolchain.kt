@@ -1,8 +1,8 @@
 package com.github.klee0kai.crosscompile.toolchain
 
-import com.github.klee0kai.crosscompile.bashtask.IEnvContainer
+import com.github.klee0kai.crosscompile.bashtask.EnvContainer
 
-interface IToolchain {
+interface Toolchain {
 
     val name: String
     val path: String?
@@ -13,7 +13,7 @@ interface IToolchain {
     /**
      *  Env for [automake](https://www.gnu.org/software/automake/)
      */
-    fun automakeConf(envContainer: IEnvContainer) = Unit
+    fun automakeConf(envContainer: EnvContainer) = Unit
 
 }
 

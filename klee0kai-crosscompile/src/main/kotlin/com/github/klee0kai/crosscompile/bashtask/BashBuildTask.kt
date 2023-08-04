@@ -16,7 +16,7 @@ open class BashBuildTask @Inject constructor(
     @Input
     val execAction: ExecActionFactory,
     taskName: TaskName,
-) : DefaultTask(), IEnvContainer {
+) : DefaultTask(), EnvContainer {
 
     @Input
     val groupName: String = taskName.groupName
@@ -53,7 +53,7 @@ open class BashBuildTask @Inject constructor(
             curEnv.configureException = value
         }
 
-    private val curEnv = EnvContainer(name, project, objectFactory, execAction)
+    private val curEnv = EnvContainerImpl(name, project, objectFactory, execAction)
 
     @TaskAction
     override fun run() = curEnv.run()
@@ -64,7 +64,7 @@ open class BashBuildTask @Inject constructor(
 
     override fun createEnvFile(file: File) = curEnv.createEnvFile(file)
 
-    override fun container(name: String?, block: EnvContainer.() -> Unit) = curEnv.container(name, block)
+    override fun container(name: String?, block: EnvContainerImpl.() -> Unit) = curEnv.container(name, block)
 
 
 }

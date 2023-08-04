@@ -1,6 +1,6 @@
 package com.github.klee0kai.crosscompile.bashtask
 
-fun interface IRun {
+fun interface Run {
 
     fun run()
 
