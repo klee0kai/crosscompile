@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "crosscompile"
 includeBuild("klee0kai-crosscompile")
-include("example")
+include("example-automake")
