@@ -37,7 +37,7 @@ open class CrossCompilePlugin : Plugin<Project> {
             val task = tasks.register(taskName, BashBuildTask::class.java, TaskName(name, subName)).get()
                 .apply {
                     group = LifecycleBasePlugin.BUILD_GROUP
-                    assembleTask.dependsOn(this)
+
 
                     try {
                         taskBlock.invoke(this)
@@ -47,7 +47,13 @@ open class CrossCompilePlugin : Plugin<Project> {
                     buildTasks.add(this)
                 }
 
-            dependsOnAssembleTask(task)?.let { buildTasks.add(it) }
+            val libAssembleTask = dependsOnAssembleTask(task)?.also {
+                assembleTask.dependsOn(it)
+                buildTasks.add(it)
+            }
+            if (libAssembleTask == null) {
+                assembleTask.dependsOn(task)
+            }
             task
         }
 
